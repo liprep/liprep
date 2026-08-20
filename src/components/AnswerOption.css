@@ -1,0 +1,126 @@
+.bb-option-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+  position: relative;
+  width: 100%;
+}
+
+.bb-option-pill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 58px;
+  padding: 12px 20px;
+  background: #FFFFFF;
+  border: 1.5px solid #000000;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.1s ease, border-color 0.1s ease;
+  font-family: inherit;
+}
+
+.bb-option-pill:hover:not(:disabled) {
+  background: #F8FAFC;
+}
+
+/* Choice Circle (A, B, C, D) */
+.bb-option-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 1.5px solid #000000;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #000000;
+  background: #FFFFFF;
+}
+
+.bb-option-text {
+  flex: 1;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: #000000;
+}
+
+/* Selected State */
+.bb-option-row.is-selected .bb-option-pill {
+  border: 2.5px solid #082A4D;
+  background: #F0F4FF;
+}
+
+.bb-option-row.is-selected .bb-option-circle {
+  background: #082A4D;
+  color: #FFFFFF;
+  border-color: #082A4D;
+}
+
+/* Strikethrough Eliminate Button (Letter with strike line across) */
+.bb-strikethrough-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border: 1.5px solid #000000;
+  border-radius: 50%;
+  background: #FFFFFF;
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+}
+
+.bb-strikethrough-letter {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #000000;
+}
+
+.bb-strikethrough-line {
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  height: 2px;
+  background: #000000;
+}
+
+.bb-strikethrough-btn.is-eliminated {
+  background: #000000;
+}
+
+.bb-strikethrough-btn.is-eliminated .bb-strikethrough-letter {
+  color: #FFFFFF;
+}
+
+.bb-strikethrough-btn.is-eliminated .bb-strikethrough-line {
+  background: #FFFFFF;
+}
+
+/* Eliminated Option Pill */
+.bb-option-row.is-eliminated .bb-option-pill {
+  opacity: 0.35;
+  border-style: dashed;
+}
+
+.bb-option-row.is-eliminated .bb-option-text {
+  text-decoration: line-through;
+}
+
+/* Correct / Incorrect states */
+.bb-option-row.is-correct .bb-option-pill {
+  border-color: #22C55E;
+  background: #F0FDF4;
+}
+
+.bb-option-row.is-incorrect .bb-option-pill {
+  border-color: #EF4444;
+  background: #FEF2F2;
+}

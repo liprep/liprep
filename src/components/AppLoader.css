@@ -1,0 +1,139 @@
+.app-loader-fullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 24px;
+  box-sizing: border-box;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.app-loader-fullscreen.loader-fade-out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.app-loader-card {
+  background: var(--color-surface);
+  border: 3px solid var(--color-navy);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-retro-lg);
+  max-width: 540px;
+  width: 100%;
+  padding: 40px 36px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.loader-brand-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #E2E8F0;
+}
+
+.loader-logo-badge {
+  display: flex;
+  align-items: center;
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.loader-logo-li {
+  background: var(--color-navy);
+  color: var(--color-gold);
+  padding: 2px 8px;
+  border-radius: 8px;
+  margin-right: 2px;
+}
+
+.loader-logo-prep {
+  color: var(--color-navy);
+}
+
+.loader-offline-pill {
+  background: #F0FDF4;
+  color: #166534;
+  border: 1.5px solid #BBF7D0;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.loader-headline {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-navy);
+  margin-bottom: 10px;
+  letter-spacing: -0.3px;
+}
+
+.loader-description {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #64748B;
+  margin-bottom: 28px;
+}
+
+/* Retro Progress Track */
+.loader-progress-track {
+  width: 100%;
+  height: 20px;
+  background: #E2E8F0;
+  border: 2px solid var(--color-navy);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.loader-progress-fill {
+  height: 100%;
+  background: var(--color-gold);
+  border-radius: var(--radius-pill);
+  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.loader-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+  font-size: 0.88rem;
+}
+
+.loader-status-text {
+  color: #475569;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80%;
+}
+
+.loader-pct-text {
+  font-weight: 800;
+  color: var(--color-navy);
+  font-size: 1rem;
+}
+
+@media (max-width: 600px) {
+  .app-loader-card {
+    padding: 28px 20px;
+  }
+  .loader-headline {
+    font-size: 1.3rem;
+  }
+}

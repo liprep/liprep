@@ -1,0 +1,152 @@
+@import "tailwindcss";
+
+:root {
+  --color-bg: #F4F6FF;
+  --color-surface: #FFFFFF;
+  --color-navy: #10375C;
+  --color-navy-muted: #A0AFBE;
+  --color-navy-dark: #0A2239;
+  --color-gold: #F3C623;
+  --color-orange: #FF9955;
+  --color-indigo: #525FE1;
+  --color-green-dot: #84D786;
+  --color-green-text: #1E7E34;
+  --color-amber-dot: #E7B179;
+  --color-coral-dot: #EB7A6C;
+  --color-coral-text: #C53030;
+  --color-border: #D8E0E9;
+  --color-border-hover: #10375C;
+
+  --shadow-retro: 0 4px 0 var(--color-navy);
+  --shadow-retro-lg: 0 8px 0 var(--color-navy);
+  --shadow-retro-hover: 0 6px 0 var(--color-navy);
+  --shadow-retro-active: 0 1px 0 var(--color-navy);
+  
+  --radius-card: 24px;
+  --radius-button: 16px;
+  --radius-pill: 9999px;
+
+  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--color-navy);
+  background-color: var(--color-bg);
+}
+
+/* Base resets without breaking MathML */
+*, ::before, ::after {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-navy);
+  font-family: inherit;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  margin: 0;
+}
+
+/* Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Blank underline styling */
+.sat-blank {
+  display: inline-block;
+  min-width: 3.5rem;
+  border-bottom: 2px solid var(--color-navy);
+  margin: 0 0.25rem;
+  vertical-align: baseline;
+}
+
+/* =========================================================
+   MATHML & TABLE ENGINE REPAIR
+   ========================================================= */
+
+/* 1. Restore native MathML layout display modes */
+math {
+  font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math", "TeX Gyre Termes Math", "Apple Symbols", serif;
+  font-size: 1.15em;
+  direction: ltr;
+  text-indent: 0;
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-rendering: optimizeLegibility;
+  font-style: normal;
+  box-sizing: content-box;
+}
+
+/* Allow native MathML layout for scripts and operators */
+math :where(mrow, mn, mo, mi, mtext, mspace, ms, mglyph) {
+  box-sizing: content-box;
+}
+
+math :where(mfrac, msqrt, mroot, msub, msup, msubsup, munder, mover, munderover, mmultiscripts) {
+  box-sizing: content-box;
+}
+
+/* Ensure over/under decorators (like angles and bars) stay positioned correctly */
+mover, munder, munderover {
+  text-align: center;
+}
+
+/* Ensure matrices and tables in MathML format cleanly */
+mtable {
+  display: inline-table !important;
+  border-collapse: collapse;
+  margin: 0 0.2em;
+  vertical-align: middle;
+}
+
+mtr {
+  display: table-row !important;
+}
+
+mtd {
+  display: table-cell !important;
+  padding: 0.2em 0.4em;
+  text-align: center;
+}
+
+/* 2. SAT Content Tables (Charts, Frequency Tables, Question Prompts) */
+.sat-rich-content table,
+.sat-content table,
+.sat-table {
+  border-collapse: collapse !important;
+  width: auto;
+  max-width: 100%;
+  margin: 1.25rem auto;
+  background: #FFFFFF;
+  border: 1.5px solid #10375C !important;
+  border-radius: 4px;
+}
+
+.sat-rich-content th,
+.sat-rich-content td,
+.sat-content th,
+.sat-content td,
+.sat-table th,
+.sat-table td {
+  border: 1px solid #10375C !important;
+  padding: 8px 14px !important;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--color-navy);
+}
+
+.sat-rich-content th,
+.sat-content th,
+.sat-table th {
+  background-color: #F1F5F9;
+  font-weight: 700;
+}

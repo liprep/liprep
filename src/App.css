@@ -1,0 +1,91 @@
+.liprep-app-frame {
+  max-width: 1440px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 
+  Button Physics: Uses box-shadow layering and translateY ONLY.
+  Never touches padding or border-width so neighbor elements NEVER shift.
+*/
+.retro-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-navy);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-navy);
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 4px 0 var(--color-navy);
+  transform: translateY(0);
+  transition: transform 80ms ease, box-shadow 80ms ease, background-color 150ms ease;
+  user-select: none;
+  position: relative;
+  will-change: transform, box-shadow;
+  box-sizing: border-box;
+}
+
+.retro-btn:hover:not(:disabled) {
+  background-color: #F8FAFC;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--color-navy);
+}
+
+.retro-btn:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--color-navy);
+}
+
+.retro-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 0 var(--color-navy);
+}
+
+.retro-btn-primary {
+  background-color: var(--color-gold);
+  color: var(--color-navy);
+}
+
+.retro-btn-primary:hover:not(:disabled) {
+  background-color: #FFD233;
+}
+
+.retro-btn-indigo {
+  background-color: var(--color-indigo);
+  color: #FFFFFF;
+}
+
+.retro-btn-indigo:hover:not(:disabled) {
+  background-color: #424EC8;
+}
+
+.retro-card {
+  background: var(--color-surface);
+  border: 2px solid var(--color-navy);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-retro);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.retro-card:hover {
+  box-shadow: var(--shadow-retro-hover);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

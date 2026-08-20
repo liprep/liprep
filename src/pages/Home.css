@@ -1,0 +1,308 @@
+.home-page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 40px clamp(24px, 5vw, 60px);
+  max-width: 1340px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.home-top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.liprep-nav-img {
+  height: 44px;
+  width: auto;
+  display: block;
+}
+
+.brand-logo-vector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.logo-badge {
+  background: var(--color-navy);
+  color: var(--color-gold);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.logo-text {
+  color: var(--color-navy);
+}
+
+.home-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Equal-height nav buttons */
+.github-star-btn,
+.home-about-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.github-star-counter {
+  background: var(--color-navy);
+  color: #FFFFFF;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.hero-split-layout {
+  display: grid;
+  grid-template-columns: minmax(520px, 1.25fr) minmax(360px, 0.75fr);
+  gap: clamp(32px, 5vw, 64px);
+  align-items: center;
+  flex: 1;
+  padding-bottom: 40px;
+}
+
+.hero-left-pane {
+  text-align: left;
+}
+
+.hero-main-title {
+  font-size: clamp(2.3rem, 3.8vw, 3.7rem);
+  font-weight: 800;
+  line-height: 1.22;
+  color: var(--color-navy);
+  letter-spacing: -0.5px;
+  margin-bottom: 18px;
+}
+
+.hero-first-line {
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.hero-second-line {
+  white-space: nowrap;
+  display: inline-block;
+}
+
+/* Star Spin & Turd Morph Animations Behind Text */
+.saturday-badge-wrapper {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.hero-corner-star-img {
+  position: absolute;
+  top: -34px;
+  right: -50px;
+  width: 80px;
+  height: 80px;
+  pointer-events: none;
+  z-index: 0;
+  animation: spinSlow 24s linear infinite;
+  will-change: transform;
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.turd-badge-wrapper {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+
+.hero-turd-blob-img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 155%;
+  height: 150%;
+  z-index: 0;
+  pointer-events: none;
+  animation: turdBreathe 6s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes turdBreathe {
+  0% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  50% { transform: translate(-50%, -52%) scale(1.08, 0.94) rotate(3deg); }
+  100% { transform: translate(-50%, -48%) scale(0.96, 1.05) rotate(-3deg); }
+}
+
+.turd-highlight-text {
+  position: relative;
+  z-index: 2;
+  color: var(--color-navy);
+}
+
+.hero-subtext {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #10375ca1;
+  line-height: 1.5;
+}
+
+.hero-right-pane {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.dropzone-card {
+  background: var(--color-surface);
+  border: 2px dashed var(--color-navy);
+  border-radius: var(--radius-card);
+  padding: 38px 28px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: var(--shadow-retro);
+  text-align: center;
+  box-sizing: border-box;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.dropzone-card.is-dragging {
+  border-color: var(--color-indigo);
+  background: #F0F4FF;
+  transform: scale(1.02);
+}
+
+.dropzone-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  background: #FFF4E5;
+  border: 2px solid var(--color-orange);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-orange);
+}
+
+.loaded-icon {
+  background: #F0FDF4;
+  border-color: #22C55E;
+  color: #22C55E;
+}
+
+.dropzone-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+  color: var(--color-navy);
+}
+
+.dropzone-desc {
+  font-size: 0.9rem;
+  color: #64748B;
+  margin-bottom: 22px;
+}
+
+.loaded-action-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.full-width-btn {
+  width: 100%;
+}
+
+.dropzone-error {
+  color: var(--color-coral-text);
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-top: 12px;
+}
+
+/* True Dead Center Blur Viewport */
+.full-screen-blur-overlay {
+  position: fixed;
+  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 99999;
+  background: rgba(16, 55, 92, 0.45);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.about-modal-card {
+  background: #FFFFFF;
+  border: 2.5px solid var(--color-navy);
+  border-radius: var(--radius-card);
+  padding: 28px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 20px 48px rgba(16, 55, 92, 0.22);
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.about-modal-text {
+  font-size: 1.02rem;
+  line-height: 1.6;
+  font-weight: 600;
+  color: var(--color-navy);
+  margin-top: 14px;
+}
+
+@media (max-width: 980px) {
+  .hero-split-layout {
+    grid-template-columns: 1fr;
+    gap: 36px;
+    text-align: center;
+  }
+  .hero-left-pane {
+    text-align: center;
+  }
+  .hero-first-line,
+  .hero-second-line {
+    white-space: normal;
+  }
+  .hero-corner-star-img {
+    top: -24px;
+    right: -32px;
+    width: 50px;
+    height: 50px;
+  }
+  .hero-right-pane {
+    justify-content: center;
+  }
+}

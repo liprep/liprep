@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Desmos SAT Calculator</title>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #FFFFFF;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    #calculator {
+      width: 100%;
+      height: 100%;
+    }
+    #fallback {
+      display: none;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+  <!-- 1. Try local offline script first; if unavailable, loads official API -->
+  <script src="/desmos-calculator.js" onerror="loadCdnScript()"></script>
+  <script>
+    function loadCdnScript() {
+      const script = document.createElement('script');
+      script.src = 'https://www.desmos.com/api/v1.9/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6';
+      script.onload = initDesmos;
+      script.onerror = showFallbackIframe;
+      document.head.appendChild(script);
+    }
+
+    let calcInstance = null;
+
+    function initDesmos() {
+      if (typeof Desmos !== 'undefined' && Desmos.GraphingCalculator) {
+        const elt = document.getElementById('calculator');
+        calcInstance = Desmos.GraphingCalculator(elt, {
+          degreeMode: true,
+          expressions: true,
+          keypad: true,
+          settingsMenu: true,
+          zoomButtons: true,
+          border: false,
+          pointsOfInterest: true,
+          trace: true,
+          pasteGraphLink: false,
+          restrictedMode: false
+        });
+      } else {
+        showFallbackIframe();
+      }
+    }
+
+    function showFallbackIframe() {
+      const calcDiv = document.getElementById('calculator');
+      const fallback = document.getElementById('fallback');
+      calcDiv.style.display = 'none';
+      fallback.style.display = 'block';
+      fallback.src = 'https://www.desmos.com/testing/cb-digital-sat/graphing';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (typeof Desmos !== 'undefined') {
+        initDesmos();
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (calcInstance) {
+        calcInstance.resize();
+      }
+    });
+  </script>
+</head>
+<body>
+  <div id="calculator"></div>
+  <iframe id="fallback" title="Desmos Testing Calculator"></iframe>
+</body>
+</html>
