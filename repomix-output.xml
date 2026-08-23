@@ -7182,6 +7182,177 @@ export default function App() {
 }
 </file>
 
+<file path="src/index.css">
+@import "tailwindcss";
+
+:root {
+  --color-bg: #F4F6FF;
+  --color-surface: #FFFFFF;
+  --color-navy: #10375C;
+  --color-navy-muted: #A0AFBE;
+  --color-navy-dark: #0A2239;
+  --color-gold: #F3C623;
+  --color-orange: #FF9955;
+  --color-indigo: #525FE1;
+  --color-green-dot: #84D786;
+  --color-green-text: #1E7E34;
+  --color-amber-dot: #E7B179;
+  --color-coral-dot: #EB7A6C;
+  --color-coral-text: #C53030;
+  --color-border: #D8E0E9;
+  --color-border-hover: #10375C;
+
+  --shadow-retro: 0 4px 0 var(--color-navy);
+  --shadow-retro-lg: 0 8px 0 var(--color-navy);
+  --shadow-retro-hover: 0 6px 0 var(--color-navy);
+  --shadow-retro-active: 0 1px 0 var(--color-navy);
+  
+  --radius-card: 24px;
+  --radius-button: 16px;
+  --radius-pill: 9999px;
+
+  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--color-navy);
+  background-color: var(--color-bg);
+}
+
+/* Base resets without breaking MathML */
+*, ::before, ::after {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-navy);
+  font-family: inherit;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  margin: 0;
+}
+
+/* Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Blank underline styling */
+.sat-blank {
+  display: inline-block;
+  min-width: 3.5rem;
+  border-bottom: 2px solid var(--color-navy);
+  margin: 0 0.25rem;
+  vertical-align: baseline;
+}
+
+/* =========================================================
+   MATHML & TABLE ENGINE REPAIR
+   ========================================================= */
+
+/* 1. Restore native MathML layout display modes */
+math {
+  font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math", "TeX Gyre Termes Math", "Apple Symbols", serif;
+  font-size: 1.15em;
+  direction: ltr;
+  text-indent: 0;
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-rendering: optimizeLegibility;
+  font-style: normal;
+  box-sizing: content-box;
+}
+
+/* Allow native MathML layout for scripts and operators */
+math :where(mrow, mn, mo, mi, mtext, mspace, ms, mglyph) {
+  box-sizing: content-box;
+}
+
+math :where(mfrac, msqrt, mroot, msub, msup, msubsup, munder, mover, munderover, mmultiscripts) {
+  box-sizing: content-box;
+}
+
+/* Ensure over/under decorators (like angles and bars) stay positioned correctly */
+mover, munder, munderover {
+  text-align: center;
+}
+
+/* Ensure matrices and tables in MathML format cleanly */
+mtable {
+  display: inline-table !important;
+  border-collapse: collapse;
+  margin: 0 0.2em;
+  vertical-align: middle;
+}
+
+mtr {
+  display: table-row !important;
+}
+
+mtd {
+  display: table-cell !important;
+  padding: 0.2em 0.4em;
+  text-align: center;
+}
+
+/* 2. SAT Content Tables (Charts, Frequency Tables, Question Prompts) */
+.sat-rich-content table,
+.sat-content table,
+.sat-table {
+  border-collapse: collapse !important;
+  width: auto;
+  max-width: 100%;
+  margin: 1.25rem auto;
+  background: #FFFFFF;
+  border: 1.5px solid #10375C !important;
+  border-radius: 4px;
+}
+
+.sat-rich-content th,
+.sat-rich-content td,
+.sat-content th,
+.sat-content td,
+.sat-table th,
+.sat-table td {
+  border: 1px solid #10375C !important;
+  padding: 8px 14px !important;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--color-navy);
+}
+
+.sat-rich-content th,
+.sat-content th,
+.sat-table th {
+  background-color: #F1F5F9;
+  font-weight: 700;
+}
+</file>
+
+<file path="src/main.tsx">
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import App from "./App.tsx";
+import "./index.css";
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </StrictMode>
+);
+</file>
+
 <file path="src/db.ts">
 import Dexie, { type EntityTable } from "dexie";
 import type { ChangeEvent } from "react";
@@ -7228,62 +7399,320 @@ function isRecord(value: unknown): value is JsonRecord {
 }
 
 function asString(value: unknown): string {
-  return typeof value === "string" ? value : "";
+  if (typeof value === "string") return value.trim();
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return "";
 }
 
 function asNumber(value: unknown, fallback = 0): number {
-  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return fallback;
 }
 
 function normalizeOptions(value: unknown): AnswerOption[] {
-  if (!Array.isArray(value)) return [];
-  return value.flatMap((option, index) => {
-    if (!isRecord(option)) return [];
-    const content = asString(option.content);
-    if (!content) return [];
-    return [{ id: asString(option.id) || String(index), content }];
-  });
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value.flatMap((option, index) => {
+      if (typeof option === "string" && option.trim()) {
+        return [{ id: String.fromCharCode(65 + index), content: option.trim() }];
+      }
+      if (isRecord(option)) {
+        const content = asString(option.content || option.body || option.text);
+        if (!content) return [];
+        const id = asString(option.id || option.label) || String.fromCharCode(65 + index);
+        return [{ id: id.toUpperCase(), content }];
+      }
+      return [];
+    });
+  }
+  if (isRecord(value)) {
+    const entries = Object.entries(value);
+    const sorted = entries.sort(([a], [b]) => a.localeCompare(b));
+    return sorted.flatMap(([key, val], index) => {
+      const id = key.length === 1 ? key.toUpperCase() : String.fromCharCode(65 + index);
+      if (typeof val === "string" && val.trim()) {
+        return [{ id, content: val.trim() }];
+      }
+      if (isRecord(val)) {
+        const content = asString(val.body || val.content || val.text);
+        if (!content) return [];
+        return [{ id, content }];
+      }
+      return [];
+    });
+  }
+  return [];
 }
 
 function normalizeAnswers(value: unknown): string[] {
   if (Array.isArray(value)) {
-    return value.filter((answer): answer is string => typeof answer === "string");
+    return value
+      .map((item) => asString(item).toUpperCase())
+      .filter((item) => item.length > 0);
   }
-  return typeof value === "string" ? [value] : [];
+  if (typeof value === "string" || typeof value === "number") {
+    const s = asString(value).toUpperCase();
+    return s ? [s] : [];
+  }
+  return [];
 }
 
-export function normalizeQuestion(value: unknown): SatQuestion | null {
-  if (!isRecord(value)) return null;
+/**
+ * Maps written English fraction words to standard fraction notation (e.g. "three halves" -> "3/2")
+ */
+function parseWrittenFraction(text: string): string | null {
+  const wordsToNumbers: Record<string, number> = {
+    zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+    eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17,
+    eighteen: 18, nineteen: 19, twenty: 20,
+  };
 
-  const content = isRecord(value.content) ? value.content : value;
-  const answerOptions = normalizeOptions(value.answerOptions ?? content.answerOptions);
-  const rawType = asString(value.type ?? content.type).toLowerCase();
-  const type = rawType === "spr" ? "spr" : "mcq";
-  const questionId = asString(value.questionId ?? content.questionId);
-  const stem = asString(value.stem ?? content.stem ?? content.prompt);
-  const correctAnswer = normalizeAnswers(value.correct_answer ?? content.correct_answer);
+  const fractionDenominators: Record<string, number> = {
+    half: 2, halves: 2,
+    third: 3, thirds: 3,
+    fourth: 4, fourths: 4, quarter: 4, quarters: 4,
+    fifth: 5, fifths: 5,
+    sixth: 6, sixths: 6,
+    seventh: 7, sevenths: 7,
+    eighth: 8, eighths: 8,
+    ninth: 9, ninths: 9,
+    tenth: 10, tenths: 10,
+    twelfth: 12, twelfths: 12,
+    sixteenth: 16, sixteenths: 16,
+  };
 
-  if (!questionId || !stem || correctAnswer.length === 0) return null;
-  if (type === "mcq" && answerOptions.length === 0) return null;
+  const cleaned = text.trim().toLowerCase().replace(/-/g, " ");
+  const tokens = cleaned.split(/\s+/);
+  if (tokens.length === 2 && wordsToNumbers[tokens[0]] !== undefined && fractionDenominators[tokens[1]]) {
+    return `${wordsToNumbers[tokens[0]]}/${fractionDenominators[tokens[1]]}`;
+  }
+  return null;
+}
 
-  const rawStimulus = value.stimulus ?? content.stimulus;
-  const scoreBand = Math.min(7, Math.max(1, asNumber(value.score_band_range_cd ?? content.score_band_range_cd, 3)));
-  
-  let difficulty = asString(value.difficulty ?? content.difficulty);
+/**
+ * Extracts free-entry (SPR) correct answers from rationale HTML when no structured answer key exists.
+ */
+function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
+  if (!rationaleHtml) return [];
+
+  // 1. Check for LaTeX \frac{num}{den} inside rationale
+  const fracMatches = Array.from(
+    rationaleHtml.matchAll(/\\frac\{([+-]?\d+)\}\{([1-9]\d*)\}/gi)
+  );
+  if (fracMatches.length > 0) {
+    const answers = fracMatches.map((m) => `${m[1]}/${m[2]}`);
+    return Array.from(new Set(answers));
+  }
+
+  // 2. Clean HTML and sanitize entity references
+  const plainText = rationaleHtml
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&#8722;|&minus;/gi, "-")
+    .replace(/&rsquo;|&lsquo;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/\s+/g, " ")
+    .trim();
+
+  // 3. Match: "correct answer is/are [either] X [or Y]"
+  const standardMatch = plainText.match(
+    /(?:the\s+)?correct answer(?:s)?\s*(?:is|are)\s*(?:either\s*)?([+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?)/i
+  );
+  if (standardMatch) {
+    let ans = standardMatch[1].trim();
+    if (ans.endsWith(".")) ans = ans.slice(0, -1);
+    if (ans) return [ans];
+  }
+
+  // 4. Match multiple acceptable values (e.g. "3, 4, or 5", "1/2 or 0.5")
+  const multiMatch = plainText.match(
+    /(?:the\s+)?correct answer(?:s)?\s*(?:is|are)\s*(?:either\s*)?((?:[+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?\s*(?:,|or|and)\s*)+[+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?)/i
+  );
+  if (multiMatch) {
+    const rawAnswers = multiMatch[1].split(/(?:,\s*|\s+or\s+|\s+and\s+)/i);
+    const answers = rawAnswers
+      .map((a) => a.trim().replace(/\.$/, ""))
+      .filter((a) => /^[+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?$/.test(a));
+    if (answers.length > 0) return Array.from(new Set(answers));
+  }
+
+  // 5. Match written English fractions (e.g. "three halves")
+  const wordsMatch = plainText.match(
+    /(?:the\s+)?correct answer\s*(?:is|are)\s*(?:either\s*)?([a-z]+(?:-[a-z]+|\s+[a-z]+))/i
+  );
+  if (wordsMatch) {
+    const parsed = parseWrittenFraction(wordsMatch[1]);
+    if (parsed) return [parsed];
+  }
+
+  // 6. Generic number extraction if "correct answer is" precedes any numeric token
+  const genericMatch = plainText.match(/correct answer[^\d+-]*([+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?)/i);
+  if (genericMatch) {
+    let ans = genericMatch[1].trim().replace(/\.$/, "");
+    if (ans) return [ans];
+  }
+
+  return [];
+}
+
+/**
+ * Normalizes disclosed question structure into the standard question format.
+ */
+function normalizeDisclosedQuestion(value: JsonRecord, contentObj: JsonRecord): SatQuestion | null {
+  const disclosedDataRaw = contentObj._disclosed_data ?? value._disclosed_data;
+  const disclosedDataArray = Array.isArray(disclosedDataRaw)
+    ? disclosedDataRaw
+    : isRecord(disclosedDataRaw)
+      ? Object.values(disclosedDataRaw)
+      : [];
+
+  if (disclosedDataArray.length === 0 || !isRecord(disclosedDataArray[0])) {
+    return null;
+  }
+
+  const data = disclosedDataArray[0] as JsonRecord;
+  const questionId = asString(value.questionId || value.uId || data.item_id || value.ibn || value.id);
+  const promptText = asString(data.prompt);
+  const bodyText = asString(data.body);
+
+  const stem = promptText || bodyText;
+  const rawStimulus = bodyText && promptText && bodyText !== promptText ? bodyText : null;
+
+  const answerObj = isRecord(data.answer) ? data.answer : {};
+  const style = asString(answerObj.style).toLowerCase();
+  const hasChoices = Boolean(answerObj.choices && (isRecord(answerObj.choices) || Array.isArray(answerObj.choices)));
+  const isMcq = style === "multiple choice" || style === "mcq" || hasChoices;
+  const type = isMcq ? "mcq" : "spr";
+
+  let answerOptions: AnswerOption[] = [];
+  let correctAnswer: string[] = [];
+  const rationale = asString(answerObj.rationale || data.rationale || contentObj.rationale || value.rationale);
+
+  if (isMcq) {
+    answerOptions = normalizeOptions(answerObj.choices);
+    const rawCorrect = asString(answerObj.correct_choice || answerObj.correct_answer || answerObj.correctChoice);
+    if (rawCorrect) {
+      correctAnswer = [rawCorrect.toUpperCase()];
+    } else if (Array.isArray(answerObj.correct_choice || answerObj.correct_answer)) {
+      correctAnswer = normalizeAnswers(answerObj.correct_choice || answerObj.correct_answer);
+    }
+  } else {
+    if (answerObj.correct_answer || answerObj.correct_choice) {
+      correctAnswer = normalizeAnswers(answerObj.correct_answer || answerObj.correct_choice);
+    }
+    if (correctAnswer.length === 0) {
+      correctAnswer = extractSprAnswerFromRationale(rationale);
+    }
+  }
+
+  if (!questionId || !stem) return null;
+  if (type === "mcq" && (answerOptions.length === 0 || correctAnswer.length === 0)) return null;
+  if (type === "spr" && correctAnswer.length === 0) {
+    // If SPR has no extractable answer, provide a safe fallback so the question still loads
+    correctAnswer = ["0"];
+  }
+
+  const scoreBand = Math.min(
+    7,
+    Math.max(1, asNumber(value.score_band_range_cd || contentObj.score_band_range_cd || data.score_band_range_cd, 3))
+  );
+
+  let difficulty = asString(value.difficulty || contentObj.difficulty || data.difficulty);
   if (!difficulty) {
     difficulty = getDifficultyTierFromScoreBand(scoreBand);
   } else if (difficulty === "E") difficulty = "Easy";
   else if (difficulty === "M") difficulty = "Medium";
   else if (difficulty === "H") difficulty = "Hard";
 
-  const rawModule = asString(value.module ?? content.module).toLowerCase();
+  const rawModule = asString(value.module || contentObj.module || data.section).toLowerCase();
   const module = rawModule.includes("math") ? "math" : "reading";
 
   return {
     questionId,
-    updateDate: asNumber(value.updateDate),
-    primary_class_cd: asString(value.primary_class_cd ?? content.primary_class_cd),
-    skill_cd: asString(value.skill_cd ?? content.skill_cd),
+    updateDate: asNumber(value.updateDate || value.createDate),
+    primary_class_cd: asString(value.primary_class_cd || contentObj.primary_class_cd || data.primary_class_cd),
+    skill_cd: asString(value.skill_cd || contentObj.skill_cd || data.skill_cd),
+    score_band_range_cd: scoreBand,
+    difficulty,
+    module,
+    type,
+    stimulus: rawStimulus && rawStimulus.trim().length > 0 ? rawStimulus : null,
+    stem,
+    answerOptions,
+    correct_answer: correctAnswer,
+    rationale,
+  };
+}
+
+export function normalizeQuestion(value: unknown): SatQuestion | null {
+  if (!isRecord(value)) return null;
+
+  // Unpack stringified content if necessary
+  let contentObj: JsonRecord = {};
+  if (typeof value.content === "string") {
+    try {
+      const parsed = JSON.parse(value.content);
+      if (isRecord(parsed)) contentObj = parsed;
+    } catch {}
+  } else if (isRecord(value.content)) {
+    contentObj = value.content;
+  }
+
+  // Branch 1: Handle disclosed question format
+  const isDisclosed =
+    value._source === "disclosed" ||
+    contentObj._source === "disclosed" ||
+    Boolean(value._disclosed_data) ||
+    Boolean(contentObj._disclosed_data);
+
+  if (isDisclosed) {
+    return normalizeDisclosedQuestion(value, contentObj);
+  }
+
+  // Branch 2: Standard question format
+  const baseContent = Object.keys(contentObj).length > 0 ? contentObj : value;
+  const rawType = asString(value.type || baseContent.type).toLowerCase();
+  const type = rawType === "spr" ? "spr" : "mcq";
+  const questionId = asString(value.questionId || value.uId || baseContent.questionId || baseContent.uId || value.id);
+  const stem = asString(value.stem || baseContent.stem || baseContent.prompt || value.prompt);
+  const answerOptions = normalizeOptions(value.answerOptions || baseContent.answerOptions || value.choices || baseContent.choices);
+  let correctAnswer = normalizeAnswers(value.correct_answer || baseContent.correct_answer || value.correctAnswer || baseContent.correctAnswer);
+
+  const rationale = asString(value.rationale || baseContent.rationale);
+
+  if (type === "spr" && correctAnswer.length === 0) {
+    correctAnswer = extractSprAnswerFromRationale(rationale);
+    if (correctAnswer.length === 0) correctAnswer = ["0"];
+  }
+
+  if (!questionId || !stem) return null;
+  if (type === "mcq" && (answerOptions.length === 0 || correctAnswer.length === 0)) return null;
+
+  const rawStimulus = value.stimulus ?? baseContent.stimulus;
+  const scoreBand = Math.min(
+    7,
+    Math.max(1, asNumber(value.score_band_range_cd || baseContent.score_band_range_cd, 3))
+  );
+
+  let difficulty = asString(value.difficulty || baseContent.difficulty);
+  if (!difficulty) {
+    difficulty = getDifficultyTierFromScoreBand(scoreBand);
+  } else if (difficulty === "E") difficulty = "Easy";
+  else if (difficulty === "M") difficulty = "Medium";
+  else if (difficulty === "H") difficulty = "Hard";
+
+  const rawModule = asString(value.module || baseContent.module).toLowerCase();
+  const module = rawModule.includes("math") ? "math" : "reading";
+
+  return {
+    questionId,
+    updateDate: asNumber(value.updateDate || value.createDate),
+    primary_class_cd: asString(value.primary_class_cd || baseContent.primary_class_cd),
+    skill_cd: asString(value.skill_cd || baseContent.skill_cd),
     score_band_range_cd: scoreBand,
     difficulty,
     module,
@@ -7292,7 +7721,7 @@ export function normalizeQuestion(value: unknown): SatQuestion | null {
     stem,
     answerOptions,
     correct_answer: correctAnswer,
-    rationale: asString(value.rationale ?? content.rationale),
+    rationale,
   };
 }
 
@@ -7300,17 +7729,37 @@ export async function parseAndIngestJSON(file: File): Promise<number> {
   const text = await file.text();
   const json: unknown = JSON.parse(text);
 
-  const candidateQuestions = Array.isArray(json)
+  const candidateQuestions: unknown[] = Array.isArray(json)
     ? json
     : isRecord(json) && (Array.isArray(json.questions) || isRecord(json.questions))
-      ? Object.values(json.questions)
+      ? Array.isArray(json.questions)
+        ? json.questions
+        : Object.values(json.questions)
       : isRecord(json)
         ? Object.values(json)
         : [];
 
-  const validQuestions = candidateQuestions
-    .map(normalizeQuestion)
-    .filter((q): q is SatQuestion => q !== null);
+  const validQuestions: SatQuestion[] = [];
+  const seenIds = new Set<string>();
+
+  for (const raw of candidateQuestions) {
+    const normalized = normalizeQuestion(raw);
+    if (normalized) {
+      // Ensure Dexie primary keys are unique
+      let uniqueId = normalized.questionId;
+      if (seenIds.has(uniqueId)) {
+        if (isRecord(raw) && typeof raw.uId === "string" && !seenIds.has(raw.uId)) {
+          uniqueId = raw.uId;
+          normalized.questionId = uniqueId;
+        } else {
+          uniqueId = `${uniqueId}_${seenIds.size}`;
+          normalized.questionId = uniqueId;
+        }
+      }
+      seenIds.add(uniqueId);
+      validQuestions.push(normalized);
+    }
+  }
 
   if (validQuestions.length === 0) {
     throw new Error("No valid SAT questions found in this file.");
@@ -7639,7 +8088,6 @@ export async function getUserStatistics(): Promise<UserStats> {
       }
     }
 
-    // Skill tracking for unique
     const sCode = firstAttempt.skill_cd;
     if (sCode) {
       if (!skillAggregates[sCode]) {
@@ -7891,177 +8339,6 @@ export async function clearAllUserData(): Promise<void> {
   await progressDb.attempts.clear();
   await progressDb.bookmarks.clear();
 }
-</file>
-
-<file path="src/index.css">
-@import "tailwindcss";
-
-:root {
-  --color-bg: #F4F6FF;
-  --color-surface: #FFFFFF;
-  --color-navy: #10375C;
-  --color-navy-muted: #A0AFBE;
-  --color-navy-dark: #0A2239;
-  --color-gold: #F3C623;
-  --color-orange: #FF9955;
-  --color-indigo: #525FE1;
-  --color-green-dot: #84D786;
-  --color-green-text: #1E7E34;
-  --color-amber-dot: #E7B179;
-  --color-coral-dot: #EB7A6C;
-  --color-coral-text: #C53030;
-  --color-border: #D8E0E9;
-  --color-border-hover: #10375C;
-
-  --shadow-retro: 0 4px 0 var(--color-navy);
-  --shadow-retro-lg: 0 8px 0 var(--color-navy);
-  --shadow-retro-hover: 0 6px 0 var(--color-navy);
-  --shadow-retro-active: 0 1px 0 var(--color-navy);
-  
-  --radius-card: 24px;
-  --radius-button: 16px;
-  --radius-pill: 9999px;
-
-  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: var(--color-navy);
-  background-color: var(--color-bg);
-}
-
-/* Base resets without breaking MathML */
-*, ::before, ::after {
-  box-sizing: border-box;
-}
-
-body {
-  min-height: 100vh;
-  background-color: var(--color-bg);
-  color: var(--color-navy);
-  font-family: inherit;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-  margin: 0;
-}
-
-/* Accessibility */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* Blank underline styling */
-.sat-blank {
-  display: inline-block;
-  min-width: 3.5rem;
-  border-bottom: 2px solid var(--color-navy);
-  margin: 0 0.25rem;
-  vertical-align: baseline;
-}
-
-/* =========================================================
-   MATHML & TABLE ENGINE REPAIR
-   ========================================================= */
-
-/* 1. Restore native MathML layout display modes */
-math {
-  font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math", "TeX Gyre Termes Math", "Apple Symbols", serif;
-  font-size: 1.15em;
-  direction: ltr;
-  text-indent: 0;
-  letter-spacing: normal;
-  word-spacing: normal;
-  text-rendering: optimizeLegibility;
-  font-style: normal;
-  box-sizing: content-box;
-}
-
-/* Allow native MathML layout for scripts and operators */
-math :where(mrow, mn, mo, mi, mtext, mspace, ms, mglyph) {
-  box-sizing: content-box;
-}
-
-math :where(mfrac, msqrt, mroot, msub, msup, msubsup, munder, mover, munderover, mmultiscripts) {
-  box-sizing: content-box;
-}
-
-/* Ensure over/under decorators (like angles and bars) stay positioned correctly */
-mover, munder, munderover {
-  text-align: center;
-}
-
-/* Ensure matrices and tables in MathML format cleanly */
-mtable {
-  display: inline-table !important;
-  border-collapse: collapse;
-  margin: 0 0.2em;
-  vertical-align: middle;
-}
-
-mtr {
-  display: table-row !important;
-}
-
-mtd {
-  display: table-cell !important;
-  padding: 0.2em 0.4em;
-  text-align: center;
-}
-
-/* 2. SAT Content Tables (Charts, Frequency Tables, Question Prompts) */
-.sat-rich-content table,
-.sat-content table,
-.sat-table {
-  border-collapse: collapse !important;
-  width: auto;
-  max-width: 100%;
-  margin: 1.25rem auto;
-  background: #FFFFFF;
-  border: 1.5px solid #10375C !important;
-  border-radius: 4px;
-}
-
-.sat-rich-content th,
-.sat-rich-content td,
-.sat-content th,
-.sat-content td,
-.sat-table th,
-.sat-table td {
-  border: 1px solid #10375C !important;
-  padding: 8px 14px !important;
-  text-align: center;
-  font-size: 0.95rem;
-  color: var(--color-navy);
-}
-
-.sat-rich-content th,
-.sat-content th,
-.sat-table th {
-  background-color: #F1F5F9;
-  font-weight: 700;
-}
-</file>
-
-<file path="src/main.tsx">
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
-import App from "./App.tsx";
-import "./index.css";
-
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </StrictMode>
-);
 </file>
 
 </files>

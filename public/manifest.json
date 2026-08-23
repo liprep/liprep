@@ -1,18 +1,31 @@
 {
-  "name": "LiPrep — Digital SAT Question Bank",
+  "name": "LiPrep - Offline SAT Suite",
   "short_name": "LiPrep",
-  "description": "Offline-first Digital SAT Practice and Question Bank Engine",
+  "description": "Fast, private, and fully offline digital SAT practice suite",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#F4F6FF",
   "theme_color": "#10375C",
-  "orientation": "any",
   "icons": [
     {
-      "src": "/liprep-logo.svg",
-      "sizes": "192x192 512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

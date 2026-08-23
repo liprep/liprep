@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import "./AppLoader.css";
 
-const CACHE_KEY = "liprep_app_cache_v1";
+const CACHE_NAME = "liprep-core-v1";
+const OFFLINE_COMPLETED_KEY = "liprep_offline_ready_v1";
 
-// Explicit list of core assets to pre-cache for complete offline availability
 const ASSETS_TO_CACHE = [
   "/",
+  "/index.html",
   "/manifest.json",
   "/desmos.html",
   "/liprep-logo.svg",
@@ -17,7 +18,6 @@ const ASSETS_TO_CACHE = [
   "/ebrw-icon-2.svg",
   "/math-icon-1.svg",
   "/math-icon-2.svg",
-  // Reference sheet formula files:
   "/reference/1.svg",
   "/reference/2.svg",
   "/reference/3.svg",
@@ -39,7 +39,7 @@ interface AppLoaderProps {
 
 export default function AppLoader({ children }: AppLoaderProps) {
   const [isReady, setIsReady] = useState(() => {
-    return localStorage.getItem(CACHE_KEY) === "completed";
+    return localStorage.getItem(OFFLINE_COMPLETED_KEY) === "true";
   });
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState("Initializing LiPrep engine...");
@@ -48,24 +48,24 @@ export default function AppLoader({ children }: AppLoaderProps) {
   useEffect(() => {
     let isCancelled = false;
 
-    async function precacheAllAssets() {
-      const alreadyCached = localStorage.getItem(CACHE_KEY) === "completed";
-      if (alreadyCached) {
+    async function prepareOfflineEngine() {
+      // If already marked ready, double-check cache and skip splash screen
+      if (localStorage.getItem(OFFLINE_COMPLETED_KEY) === "true") {
         setIsReady(true);
         return;
       }
 
-      setStatusText("Preparing offline storage...");
+      setStatusText("Configuring offline service worker...");
       let cache: Cache | null = null;
       try {
         if ("caches" in window) {
-          cache = await caches.open(CACHE_KEY);
+          cache = await caches.open(CACHE_NAME);
         }
       } catch (e) {
-        console.warn("CacheStorage unavailable, continuing via HTTP cache", e);
+        console.warn("CacheStorage open error:", e);
       }
 
-      const totalItems = ASSETS_TO_CACHE.length + 3;
+      const totalItems = ASSETS_TO_CACHE.length + 2;
       let loadedItems = 0;
 
       const updateStep = (text: string) => {
@@ -81,16 +81,16 @@ export default function AppLoader({ children }: AppLoaderProps) {
           if (cache) {
             const match = await cache.match(assetUrl);
             if (!match) {
-              const res = await fetch(assetUrl, { mode: "cors" });
-              if (res.ok) {
+              const res = await fetch(assetUrl, {
+                mode: assetUrl.startsWith("http") ? "cors" : "same-origin",
+              });
+              if (res.ok || res.type === "opaque") {
                 await cache.put(assetUrl, res.clone());
               }
             }
-          } else {
-            await fetch(assetUrl, { mode: "no-cors" });
           }
-        } catch {
-          // Graceful fallback
+        } catch (e) {
+          console.warn(`Could not cache asset ${assetUrl}:`, e);
         }
 
         if (assetUrl.includes("desmos")) {
@@ -102,25 +102,25 @@ export default function AppLoader({ children }: AppLoaderProps) {
         }
       }
 
-      updateStep("Calibrating MathML and typography engines...");
+      updateStep("Calibrating offline database & MathML...");
       await new Promise((resolve) => setTimeout(resolve, 150));
 
       updateStep("LiPrep is ready for offline practice!");
       setProgress(100);
 
-      localStorage.setItem(CACHE_KEY, "completed");
+      localStorage.setItem(OFFLINE_COMPLETED_KEY, "true");
 
       setTimeout(() => {
         if (!isCancelled) {
           setIsFadingOut(true);
           setTimeout(() => {
             if (!isCancelled) setIsReady(true);
-          }, 400);
+          }, 350);
         }
       }, 300);
     }
 
-    precacheAllAssets();
+    prepareOfflineEngine();
 
     return () => {
       isCancelled = true;
@@ -144,8 +144,8 @@ export default function AppLoader({ children }: AppLoaderProps) {
 
         <h1 className="loader-headline">Downloading LiPrep to Device</h1>
         <p className="loader-description">
-          Storing the application, Desmos SAT graphing suite, formula sheets, and diagnostic telemetry
-          locally so it works 100% offline with zero internet required.
+          Storing the application shell, Desmos SAT graphing suite, formula sheets, and diagnostic telemetry
+          locally so you can practice with <strong>zero internet connection</strong>.
         </p>
 
         <div className="loader-progress-track">
