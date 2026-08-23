@@ -26,7 +26,7 @@
   box-shadow: var(--shadow-retro-lg);
   max-width: 540px;
   width: 100%;
-  padding: 40px 36px;
+  padding: 36px 36px 40px;
   text-align: center;
   box-sizing: border-box;
 }
@@ -40,23 +40,11 @@
   border-bottom: 2px solid #E2E8F0;
 }
 
-.loader-logo-badge {
-  display: flex;
-  align-items: center;
-  font-size: 1.6rem;
-  font-weight: 800;
-}
-
-.loader-logo-li {
-  background: var(--color-navy);
-  color: var(--color-gold);
-  padding: 2px 8px;
-  border-radius: 8px;
-  margin-right: 2px;
-}
-
-.loader-logo-prep {
-  color: var(--color-navy);
+.loader-brand-logo-img {
+  height: 42px;
+  width: auto;
+  display: block;
+  object-fit: contain;
 }
 
 .loader-offline-pill {
@@ -68,6 +56,7 @@
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .loader-headline {
@@ -135,5 +124,8 @@
   }
   .loader-headline {
     font-size: 1.3rem;
+  }
+  .loader-brand-logo-img {
+    height: 36px;
   }
 }

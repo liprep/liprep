@@ -105,9 +105,6 @@ function normalizeAnswers(value: unknown): string[] {
   return [];
 }
 
-/**
- * Maps written English fraction words to standard fraction notation (e.g. "three halves" -> "3/2")
- */
 function parseWrittenFraction(text: string): string | null {
   const wordsToNumbers: Record<string, number> = {
     zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
@@ -137,13 +134,9 @@ function parseWrittenFraction(text: string): string | null {
   return null;
 }
 
-/**
- * Extracts free-entry (SPR) correct answers from rationale HTML when no structured answer key exists.
- */
 function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
   if (!rationaleHtml) return [];
 
-  // 1. Check for LaTeX \frac{num}{den} inside rationale
   const fracMatches = Array.from(
     rationaleHtml.matchAll(/\\frac\{([+-]?\d+)\}\{([1-9]\d*)\}/gi)
   );
@@ -152,7 +145,6 @@ function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
     return Array.from(new Set(answers));
   }
 
-  // 2. Clean HTML and sanitize entity references
   const plainText = rationaleHtml
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/gi, " ")
@@ -162,7 +154,6 @@ function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
     .replace(/\s+/g, " ")
     .trim();
 
-  // 3. Match: "correct answer is/are [either] X [or Y]"
   const standardMatch = plainText.match(
     /(?:the\s+)?correct answer(?:s)?\s*(?:is|are)\s*(?:either\s*)?([+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?)/i
   );
@@ -172,7 +163,6 @@ function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
     if (ans) return [ans];
   }
 
-  // 4. Match multiple acceptable values (e.g. "3, 4, or 5", "1/2 or 0.5")
   const multiMatch = plainText.match(
     /(?:the\s+)?correct answer(?:s)?\s*(?:is|are)\s*(?:either\s*)?((?:[+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?\s*(?:,|or|and)\s*)+[+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?)/i
   );
@@ -184,7 +174,6 @@ function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
     if (answers.length > 0) return Array.from(new Set(answers));
   }
 
-  // 5. Match written English fractions (e.g. "three halves")
   const wordsMatch = plainText.match(
     /(?:the\s+)?correct answer\s*(?:is|are)\s*(?:either\s*)?([a-z]+(?:-[a-z]+|\s+[a-z]+))/i
   );
@@ -193,7 +182,6 @@ function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
     if (parsed) return [parsed];
   }
 
-  // 6. Generic number extraction if "correct answer is" precedes any numeric token
   const genericMatch = plainText.match(/correct answer[^\d+-]*([+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?)/i);
   if (genericMatch) {
     let ans = genericMatch[1].trim().replace(/\.$/, "");
@@ -203,9 +191,6 @@ function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
   return [];
 }
 
-/**
- * Normalizes disclosed question structure into the standard question format.
- */
 function normalizeDisclosedQuestion(value: JsonRecord, contentObj: JsonRecord): SatQuestion | null {
   const disclosedDataRaw = contentObj._disclosed_data ?? value._disclosed_data;
   const disclosedDataArray = Array.isArray(disclosedDataRaw)
@@ -223,8 +208,30 @@ function normalizeDisclosedQuestion(value: JsonRecord, contentObj: JsonRecord): 
   const promptText = asString(data.prompt);
   const bodyText = asString(data.body);
 
-  const stem = promptText || bodyText;
-  const rawStimulus = bodyText && promptText && bodyText !== promptText ? bodyText : null;
+  const rawModule = asString(value.module || contentObj.module || data.section).toLowerCase();
+  const module = rawModule.includes("math") ? "math" : "reading";
+
+  let stem = "";
+  let rawStimulus: string | null = null;
+
+  if (module === "math") {
+    // In Math, combine body and prompt into a single stem so it is NEVER split-screen
+    if (bodyText && promptText && bodyText !== promptText) {
+      stem = `${bodyText}\n${promptText}`;
+    } else {
+      stem = promptText || bodyText;
+    }
+    rawStimulus = null;
+  } else {
+    // In Reading, bodyText is the stimulus passage and promptText is the question
+    if (bodyText && promptText && bodyText !== promptText) {
+      rawStimulus = bodyText;
+      stem = promptText;
+    } else {
+      stem = promptText || bodyText;
+      rawStimulus = null;
+    }
+  }
 
   const answerObj = isRecord(data.answer) ? data.answer : {};
   const style = asString(answerObj.style).toLowerCase();
@@ -256,7 +263,6 @@ function normalizeDisclosedQuestion(value: JsonRecord, contentObj: JsonRecord): 
   if (!questionId || !stem) return null;
   if (type === "mcq" && (answerOptions.length === 0 || correctAnswer.length === 0)) return null;
   if (type === "spr" && correctAnswer.length === 0) {
-    // If SPR has no extractable answer, provide a safe fallback so the question still loads
     correctAnswer = ["0"];
   }
 
@@ -271,9 +277,6 @@ function normalizeDisclosedQuestion(value: JsonRecord, contentObj: JsonRecord): 
   } else if (difficulty === "E") difficulty = "Easy";
   else if (difficulty === "M") difficulty = "Medium";
   else if (difficulty === "H") difficulty = "Hard";
-
-  const rawModule = asString(value.module || contentObj.module || data.section).toLowerCase();
-  const module = rawModule.includes("math") ? "math" : "reading";
 
   return {
     questionId,
@@ -295,7 +298,6 @@ function normalizeDisclosedQuestion(value: JsonRecord, contentObj: JsonRecord): 
 export function normalizeQuestion(value: unknown): SatQuestion | null {
   if (!isRecord(value)) return null;
 
-  // Unpack stringified content if necessary
   let contentObj: JsonRecord = {};
   if (typeof value.content === "string") {
     try {
@@ -306,7 +308,6 @@ export function normalizeQuestion(value: unknown): SatQuestion | null {
     contentObj = value.content;
   }
 
-  // Branch 1: Handle disclosed question format
   const isDisclosed =
     value._source === "disclosed" ||
     contentObj._source === "disclosed" ||
@@ -317,12 +318,11 @@ export function normalizeQuestion(value: unknown): SatQuestion | null {
     return normalizeDisclosedQuestion(value, contentObj);
   }
 
-  // Branch 2: Standard question format
   const baseContent = Object.keys(contentObj).length > 0 ? contentObj : value;
   const rawType = asString(value.type || baseContent.type).toLowerCase();
   const type = rawType === "spr" ? "spr" : "mcq";
   const questionId = asString(value.questionId || value.uId || baseContent.questionId || baseContent.uId || value.id);
-  const stem = asString(value.stem || baseContent.stem || baseContent.prompt || value.prompt);
+  let stem = asString(value.stem || baseContent.stem || baseContent.prompt || value.prompt);
   const answerOptions = normalizeOptions(value.answerOptions || baseContent.answerOptions || value.choices || baseContent.choices);
   let correctAnswer = normalizeAnswers(value.correct_answer || baseContent.correct_answer || value.correctAnswer || baseContent.correctAnswer);
 
@@ -336,7 +336,7 @@ export function normalizeQuestion(value: unknown): SatQuestion | null {
   if (!questionId || !stem) return null;
   if (type === "mcq" && (answerOptions.length === 0 || correctAnswer.length === 0)) return null;
 
-  const rawStimulus = value.stimulus ?? baseContent.stimulus;
+  let rawStimulus = value.stimulus ?? baseContent.stimulus;
   const scoreBand = Math.min(
     7,
     Math.max(1, asNumber(value.score_band_range_cd || baseContent.score_band_range_cd, 3))
@@ -351,6 +351,13 @@ export function normalizeQuestion(value: unknown): SatQuestion | null {
 
   const rawModule = asString(value.module || baseContent.module).toLowerCase();
   const module = rawModule.includes("math") ? "math" : "reading";
+
+  if (module === "math") {
+    if (rawStimulus && typeof rawStimulus === "string" && rawStimulus.trim().length > 0) {
+      stem = `${rawStimulus}\n${stem}`;
+    }
+    rawStimulus = null;
+  }
 
   return {
     questionId,
@@ -389,7 +396,6 @@ export async function parseAndIngestJSON(file: File): Promise<number> {
   for (const raw of candidateQuestions) {
     const normalized = normalizeQuestion(raw);
     if (normalized) {
-      // Ensure Dexie primary keys are unique
       let uniqueId = normalized.questionId;
       if (seenIds.has(uniqueId)) {
         if (isRecord(raw) && typeof raw.uId === "string" && !seenIds.has(raw.uId)) {
@@ -704,7 +710,6 @@ export async function getUserStatistics(): Promise<UserStats> {
     }
   > = {};
 
-  // Process unique question statistics
   questionAttemptsMap.forEach((qAttempts) => {
     const firstAttempt = qAttempts[0];
     const latestAttempt = qAttempts[qAttempts.length - 1];
@@ -753,7 +758,6 @@ export async function getUserStatistics(): Promise<UserStats> {
     }
   });
 
-  // Process overall attempts & pacing
   for (const a of attempts) {
     const t = a.timeSpentSeconds || 0;
     globalTotalTime += t;
@@ -801,7 +805,6 @@ export async function getUserStatistics(): Promise<UserStats> {
     }
   }
 
-  // Difficulty stats
   const finalGlobalDifficulty: UserStats["difficultyStats"] = {};
   for (let b = 1; b <= 7; b++) {
     const gd = globalDifficultyStats[b];
@@ -829,7 +832,6 @@ export async function getUserStatistics(): Promise<UserStats> {
     };
   }
 
-  // Skill performances
   const finalSkillStats: Record<string, SkillPerformance> = {};
   for (const [code, sk] of Object.entries(skillAggregates)) {
     finalSkillStats[code] = {
@@ -846,7 +848,6 @@ export async function getUserStatistics(): Promise<UserStats> {
     };
   }
 
-  // Domain performances
   const finalDomainStats: Record<string, DomainPerformance> = {};
   for (const [code, dom] of Object.entries(domainAggregates)) {
     const skillsInDomain = Object.values(finalSkillStats).filter(

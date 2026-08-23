@@ -121,7 +121,6 @@ export default function Practice() {
 
   const currentQ = questions[currentIndex];
 
-  // Reset per-question timer when question index changes
   useEffect(() => {
     setTimerSeconds(0);
     questionStartTimeRef.current = Date.now();
@@ -188,6 +187,9 @@ export default function Practice() {
   const isBookmarked = currentQ ? bookmarkedSet.has(currentQ.questionId) : false;
   const isCorrect = isSubmitted && currentQ ? checkIsCorrect(currentQ, currentAnswer) : false;
   const isMathModule = currentQ?.module === "math";
+
+  // Math questions are NEVER split into a stimulus pane; Reading & Writing uses stimulus if available
+  const hasStimulus = !isMathModule && Boolean(currentQ?.stimulus);
 
   const handleNavigate = useCallback((index: number) => {
     setCurrentIndex(index);
@@ -376,10 +378,10 @@ export default function Practice() {
         </div>
       </header>
 
-      {/* Main Split Viewport */}
+      {/* Main Viewport */}
       <div
         className={`bluebook-viewport ${
-          !currentQ.stimulus && !(isCalculatorOpen && isCalcDocked) ? "no-stimulus" : ""
+          !hasStimulus && !(isCalculatorOpen && isCalcDocked) ? "no-stimulus" : ""
         }`}
         onMouseUp={handleTextHighlight}
       >
@@ -401,7 +403,7 @@ export default function Practice() {
             <div className="docked-calc-slot" />
           </aside>
         ) : (
-          currentQ.stimulus && (
+          hasStimulus && (
             <aside className="stimulus-column">
               <RichContent content={currentQ.stimulus} />
             </aside>
@@ -441,6 +443,11 @@ export default function Practice() {
               )}
             </div>
           </div>
+
+          {/* If there's any fallback math stimulus, render it directly above stem */}
+          {isMathModule && currentQ.stimulus && (
+            <RichContent content={currentQ.stimulus} className="stem-container" />
+          )}
 
           <RichContent content={currentQ.stem} className="stem-container" />
 
@@ -543,7 +550,7 @@ export default function Practice() {
         </main>
       </div>
 
-      {/* Floating Desmos */}
+      {/* Floating / Docked Desmos */}
       <div
         className={`desmos-persistent-frame ${
           isCalculatorOpen ? (isCalcDocked ? "frame-docked" : "frame-floating") : "frame-hidden"

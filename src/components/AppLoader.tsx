@@ -44,18 +44,18 @@ export default function AppLoader({ children }: AppLoaderProps) {
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState("Initializing LiPrep engine...");
   const [isFadingOut, setIsFadingOut] = useState(false);
+  const [logoFailed, setLogoFailed] = useState(false);
 
   useEffect(() => {
     let isCancelled = false;
 
     async function prepareOfflineEngine() {
-      // If already marked ready, double-check cache and skip splash screen
       if (localStorage.getItem(OFFLINE_COMPLETED_KEY) === "true") {
         setIsReady(true);
         return;
       }
 
-      setStatusText("Configuring offline service worker...");
+      setStatusText("Configuring offline cache storage...");
       let cache: Cache | null = null;
       try {
         if ("caches" in window) {
@@ -94,18 +94,18 @@ export default function AppLoader({ children }: AppLoaderProps) {
         }
 
         if (assetUrl.includes("desmos")) {
-          updateStep("Caching Desmos SAT calculator engine...");
-        } else if (assetUrl.includes("svg") || assetUrl.includes("reference")) {
-          updateStep("Downloading vector graphics & formula sheets...");
+          updateStep("Caching Desmos SAT graphing calculator...");
+        } else if (assetUrl.includes("reference")) {
+          updateStep("Downloading official formula sheets...");
         } else {
-          updateStep("Caching application shell...");
+          updateStep("Caching application assets...");
         }
       }
 
-      updateStep("Calibrating offline database & MathML...");
+      updateStep("Calibrating offline storage & Math engine...");
       await new Promise((resolve) => setTimeout(resolve, 150));
 
-      updateStep("LiPrep is ready for offline practice!");
+      updateStep("Ready for offline practice!");
       setProgress(100);
 
       localStorage.setItem(OFFLINE_COMPLETED_KEY, "true");
@@ -135,10 +135,19 @@ export default function AppLoader({ children }: AppLoaderProps) {
     <div className={`app-loader-fullscreen ${isFadingOut ? "loader-fade-out" : ""}`}>
       <div className="app-loader-card animate-fade-in">
         <div className="loader-brand-header">
-          <div className="loader-logo-badge">
-            <span className="loader-logo-li">Li</span>
-            <span className="loader-logo-prep">Prep</span>
-          </div>
+          {!logoFailed ? (
+            <img
+              src="/liprep-logo.svg"
+              alt="LiPrep"
+              className="loader-brand-logo-img"
+              onError={() => setLogoFailed(true)}
+            />
+          ) : (
+            <div className="brand-logo-vector">
+              <span className="logo-badge">Li</span>
+              <span className="logo-text">Prep</span>
+            </div>
+          )}
           <span className="loader-offline-pill">Offline SAT Suite</span>
         </div>
 

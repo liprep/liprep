@@ -2,7 +2,6 @@ import DOMPurify from "dompurify";
 import parse, { type DOMNode, type Element } from "html-react-parser";
 import { useMemo } from "react";
 
-
 interface RichContentProps {
   content?: string | null;
   className?: string;
@@ -79,11 +78,24 @@ export default function RichContent({ content, className = "" }: RichContentProp
     // 2. Fix degree symbol spacing quirks
     preprocessed = preprocessed.replace(/&deg;/g, "°");
 
-    // 3. Clean and sanitize HTML, SVG & MathML without stripping Matplotlib <use> tags
+    // 3. Clean and sanitize HTML, SVG & MathML
     const cleanHTML = DOMPurify.sanitize(preprocessed, {
       USE_PROFILES: { html: true, svg: true, mathMl: true, svgFilters: true },
-      ADD_TAGS: [...mathMLTags, ...svgTags, "table", "thead", "tbody", "tr", "th", "td", "figure"],
+      ADD_TAGS: [
+        ...mathMLTags,
+        ...svgTags,
+        "table",
+        "thead",
+        "tbody",
+        "tr",
+        "th",
+        "td",
+        "figure",
+        "img",
+      ],
       ADD_ATTR: [
+        "src",
+        "alt",
         "alttext",
         "aria-hidden",
         "aria-label",
@@ -121,6 +133,7 @@ export default function RichContent({ content, className = "" }: RichContentProp
         "columnalign",
         "version",
         "role",
+        "loading",
       ],
     });
 

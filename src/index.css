@@ -70,10 +70,53 @@ body {
 }
 
 /* =========================================================
-   MATHML & TABLE ENGINE REPAIR
+   MATH IMAGE & INLINE EQUATION ENGINE
    ========================================================= */
 
-/* 1. Restore native MathML layout display modes */
+/* Override Tailwind's block image reset inside rich content and choices */
+.sat-rich-content img,
+.bb-option-text img {
+  display: inline-block;
+  vertical-align: middle;
+  max-width: 100%;
+}
+
+.sat-rich-content .math-img,
+.sat-rich-content img[role="math"],
+.sat-rich-content .math-container img,
+.bb-option-text .math-img,
+.bb-option-text img[role="math"],
+.bb-option-text .math-container img {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  margin: 0 3px;
+  max-height: 2.2em;
+  width: auto;
+}
+
+.sat-rich-content .math_expression,
+.sat-rich-content .math-container,
+.bb-option-text .math_expression,
+.bb-option-text .math-container {
+  display: inline !important;
+  vertical-align: middle;
+}
+
+.sat-rich-content p,
+.bb-option-text p {
+  margin: 0.35rem 0;
+  line-height: 1.75;
+}
+
+.sat-rich-content .standalone_statement,
+.sat-rich-content .stimulus_reference {
+  margin-bottom: 0.85rem;
+}
+
+/* =========================================================
+   MATHML & TABLE ENGINE
+   ========================================================= */
+
 math {
   font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math", "TeX Gyre Termes Math", "Apple Symbols", serif;
   font-size: 1.15em;
@@ -86,7 +129,6 @@ math {
   box-sizing: content-box;
 }
 
-/* Allow native MathML layout for scripts and operators */
 math :where(mrow, mn, mo, mi, mtext, mspace, ms, mglyph) {
   box-sizing: content-box;
 }
@@ -95,12 +137,10 @@ math :where(mfrac, msqrt, mroot, msub, msup, msubsup, munder, mover, munderover,
   box-sizing: content-box;
 }
 
-/* Ensure over/under decorators (like angles and bars) stay positioned correctly */
 mover, munder, munderover {
   text-align: center;
 }
 
-/* Ensure matrices and tables in MathML format cleanly */
 mtable {
   display: inline-table !important;
   border-collapse: collapse;
@@ -118,7 +158,7 @@ mtd {
   text-align: center;
 }
 
-/* 2. SAT Content Tables (Charts, Frequency Tables, Question Prompts) */
+/* SAT Content Tables */
 .sat-rich-content table,
 .sat-content table,
 .sat-table {
