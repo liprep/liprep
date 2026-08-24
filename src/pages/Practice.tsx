@@ -204,7 +204,7 @@ export default function Practice() {
     };
   }, [isDraggingCalc, dragOffset, isCalcDocked]);
 
-  // Precision Highlight & Partial De-highlight Engine
+  // Predictive Highlight & Majority De-highlight Engine
   function handleTextHighlight() {
     if (!isHighlightMode) return;
     const selection = window.getSelection();
@@ -229,7 +229,7 @@ export default function Practice() {
       return;
     }
 
-    // Identify lowest common container within the allowed question column or stimulus pane
+    // Target the closest active content container
     const searchScope = (container.nodeType === Node.TEXT_NODE ? container.parentNode : container) as HTMLElement;
     const containerPane = rootEl.closest(".stimulus-column, .question-column") as HTMLElement;
     const effectiveContainer = searchScope || containerPane;
@@ -253,85 +253,100 @@ export default function Practice() {
 
     if (textNodes.length === 0) return;
 
-    // Check if the selected selection consists entirely of existing highlighted content
-    const isEntirelyHighlighted = textNodes.every((node) => {
-      return Boolean(node.parentElement?.closest("mark.sat-highlight"));
-    });
+    interface NodeSlice {
+      node: Text;
+      start: number;
+      end: number;
+      isHighlighted: boolean;
+      isStart: boolean;
+      isEnd: boolean;
+    }
 
-    if (isEntirelyHighlighted) {
-      // DE-HIGHLIGHT ONLY SELECTED SUB-RANGE: Split <mark> nodes and extract only selected text portion
-      textNodes.forEach((node) => {
-        const isStart = node === range.startContainer;
-        const isEnd = node === range.endContainer;
+    const slices: NodeSlice[] = [];
+    let totalLength = 0;
+    let totalHighlightedLength = 0;
 
-        const start = isStart ? range.startOffset : 0;
-        const end = isEnd ? range.endOffset : (node.nodeValue?.length || 0);
+    for (const node of textNodes) {
+      const isStart = node === range.startContainer;
+      const isEnd = node === range.endContainer;
 
-        if (start >= end) return;
+      const start = isStart ? range.startOffset : 0;
+      const end = isEnd ? range.endOffset : (node.nodeValue?.length || 0);
+      const len = Math.max(0, end - start);
 
-        let selectedTextNode = node;
-        if (isEnd && end < (node.nodeValue?.length || 0)) {
-          selectedTextNode.splitText(end);
-        }
-        if (isStart && start > 0) {
-          selectedTextNode = selectedTextNode.splitText(start);
-        }
+      if (len === 0) continue;
 
-        const markParent = selectedTextNode.parentElement?.closest("mark.sat-highlight");
-        if (markParent && markParent.parentNode) {
-          const parent = markParent.parentNode;
-          // Unpack only selectedTextNode out of mark container
-          const markContainerOfNode = selectedTextNode.parentElement as HTMLElement;
-          if (markContainerOfNode && markContainerOfNode.tagName.toLowerCase() === "mark") {
-            const children = Array.from(markContainerOfNode.childNodes);
-            const index = children.indexOf(selectedTextNode);
+      const isHighlighted = Boolean(node.parentElement?.closest("mark.sat-highlight"));
+      slices.push({
+        node,
+        start,
+        end,
+        isHighlighted,
+        isStart,
+        isEnd,
+      });
 
-            if (index > 0) {
-              const prevMark = document.createElement("mark");
-              prevMark.className = "sat-highlight";
-              for (let i = 0; i < index; i++) {
-                prevMark.appendChild(children[i]);
+      totalLength += len;
+      if (isHighlighted) {
+        totalHighlightedLength += len;
+      }
+    }
+
+    if (totalLength === 0) return;
+
+    // Majority Rule: If strictly more than 50% of the touched selection is already highlighted,
+    // the user's intent is to un-highlight. Otherwise, the intent is to highlight.
+    const isMajorityHighlighted = totalHighlightedLength > totalLength / 2;
+
+    // Process from back to front to preserve DOM character offsets during splits
+    slices.reverse().forEach((slice) => {
+      const { node, start, end, isHighlighted, isStart, isEnd } = slice;
+      let targetNode = node;
+
+      if (isEnd && end < (targetNode.nodeValue?.length || 0)) {
+        targetNode.splitText(end);
+      }
+      if (isStart && start > 0) {
+        targetNode = targetNode.splitText(start);
+      }
+
+      if (isMajorityHighlighted) {
+        // UN-HIGHLIGHT INTENT: Remove highlight wrapper if present
+        if (isHighlighted) {
+          const markContainer = targetNode.parentElement?.closest("mark.sat-highlight") as HTMLElement | null;
+          if (markContainer && markContainer.parentNode) {
+            const parent = markContainer.parentNode;
+            if (markContainer.tagName.toLowerCase() === "mark") {
+              const children = Array.from(markContainer.childNodes);
+              const index = children.indexOf(targetNode);
+
+              if (index > 0) {
+                const prevMark = document.createElement("mark");
+                prevMark.className = "sat-highlight";
+                for (let i = 0; i < index; i++) {
+                  prevMark.appendChild(children[i]);
+                }
+                parent.insertBefore(prevMark, markContainer);
               }
-              parent.insertBefore(prevMark, markContainerOfNode);
-            }
 
-            parent.insertBefore(selectedTextNode, markContainerOfNode);
+              parent.insertBefore(targetNode, markContainer);
 
-            if (index < children.length - 1) {
-              const nextMark = document.createElement("mark");
-              nextMark.className = "sat-highlight";
-              for (let i = index + 1; i < children.length; i++) {
-                nextMark.appendChild(children[i]);
+              if (index < children.length - 1) {
+                const nextMark = document.createElement("mark");
+                nextMark.className = "sat-highlight";
+                for (let i = index + 1; i < children.length; i++) {
+                  nextMark.appendChild(children[i]);
+                }
+                parent.insertBefore(nextMark, markContainer);
               }
-              parent.insertBefore(nextMark, markContainerOfNode);
-            }
 
-            parent.removeChild(markContainerOfNode);
-            parent.normalize();
+              parent.removeChild(markContainer);
+            }
           }
         }
-      });
-    } else {
-      // HIGHLIGHT SELECTED RANGE: Wrap non-highlighted sub-nodes into <mark>
-      textNodes.forEach((node) => {
-        const isStart = node === range.startContainer;
-        const isEnd = node === range.endContainer;
-
-        const start = isStart ? range.startOffset : 0;
-        const end = isEnd ? range.endOffset : (node.nodeValue?.length || 0);
-
-        if (start >= end) return;
-
-        let targetNode = node;
-        if (isEnd && end < (node.nodeValue?.length || 0)) {
-          targetNode.splitText(end);
-        }
-        if (isStart && start > 0) {
-          targetNode = targetNode.splitText(start);
-        }
-
-        // Avoid double-wrapping if already inside a mark
-        if (targetNode.nodeValue && targetNode.nodeValue.length > 0) {
+      } else {
+        // HIGHLIGHT INTENT: Wrap unhighlighted text into <mark>
+        if (!isHighlighted && targetNode.nodeValue && targetNode.nodeValue.length > 0) {
           if (!targetNode.parentElement?.closest("mark.sat-highlight")) {
             const mark = document.createElement("mark");
             mark.className = "sat-highlight";
@@ -339,8 +354,30 @@ export default function Practice() {
             mark.appendChild(targetNode);
           }
         }
-      });
-    }
+      }
+    });
+
+    // Clean up empty marks and merge adjacent <mark> tags into continuous highlights
+    const allMarks = Array.from(effectiveContainer.querySelectorAll("mark.sat-highlight"));
+    allMarks.forEach((mark) => {
+      if (!mark.textContent || mark.textContent.length === 0) {
+        mark.remove();
+        return;
+      }
+      let next = mark.nextSibling;
+      while (
+        next &&
+        next.nodeType === Node.ELEMENT_NODE &&
+        (next as HTMLElement).classList.contains("sat-highlight")
+      ) {
+        while (next.firstChild) {
+          mark.appendChild(next.firstChild);
+        }
+        const nextElem = next;
+        next = next.nextSibling;
+        nextElem.remove();
+      }
+    });
 
     effectiveContainer.normalize();
     selection.removeAllRanges();
