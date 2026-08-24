@@ -2,23 +2,24 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 40px clamp(24px, 5vw, 60px);
+  padding: 40px clamp(16px, 4vw, 60px);
   max-width: 1340px;
   margin: 0 auto;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .home-top-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 48px;
+  margin-bottom: 40px;
   flex-wrap: wrap;
   gap: 16px;
 }
 
 .liprep-nav-img {
-  height: 44px;
+  height: 40px;
   width: auto;
   display: block;
 }
@@ -45,10 +46,9 @@
 .home-nav-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-/* Equal-height nav buttons */
 .github-star-btn,
 .home-about-btn {
   display: inline-flex;
@@ -61,6 +61,7 @@
   font-weight: 700;
   text-decoration: none;
   box-sizing: border-box;
+  touch-action: manipulation;
 }
 
 .github-star-counter {
@@ -75,8 +76,8 @@
 
 .hero-split-layout {
   display: grid;
-  grid-template-columns: minmax(520px, 1.25fr) minmax(360px, 0.75fr);
-  gap: clamp(32px, 5vw, 64px);
+  grid-template-columns: minmax(440px, 1.25fr) minmax(320px, 0.75fr);
+  gap: clamp(24px, 4vw, 64px);
   align-items: center;
   flex: 1;
   padding-bottom: 40px;
@@ -87,7 +88,7 @@
 }
 
 .hero-main-title {
-  font-size: clamp(2.3rem, 3.8vw, 3.7rem);
+  font-size: clamp(2.1rem, 3.8vw, 3.7rem);
   font-weight: 800;
   line-height: 1.22;
   color: var(--color-navy);
@@ -96,12 +97,10 @@
 }
 
 .hero-first-line {
-  white-space: nowrap;
   display: inline-block;
 }
 
 .hero-second-line {
-  white-space: nowrap;
   display: inline-block;
 }
 
@@ -162,7 +161,7 @@
 }
 
 .hero-subtext {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 600;
   color: #10375ca1;
   line-height: 1.5;
@@ -171,13 +170,14 @@
 .hero-right-pane {
   display: flex;
   justify-content: flex-end;
+  width: 100%;
 }
 
 .dropzone-card {
   background: var(--color-surface);
   border: 2px dashed var(--color-navy);
   border-radius: var(--radius-card);
-  padding: 38px 28px;
+  padding: 34px 24px;
   max-width: 440px;
   width: 100%;
   box-shadow: var(--shadow-retro);
@@ -193,8 +193,8 @@
 }
 
 .dropzone-icon {
-  width: 56px;
-  height: 56px;
+  width: 54px;
+  height: 54px;
   margin: 0 auto 14px;
   background: #FFF4E5;
   border: 2px solid var(--color-orange);
@@ -212,7 +212,7 @@
 }
 
 .dropzone-title {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 800;
   margin-bottom: 6px;
   color: var(--color-navy);
@@ -241,7 +241,7 @@
   margin-top: 12px;
 }
 
-/* True Dead Center Blur Viewport */
+/* Dead Center Blur Modal Viewport */
 .full-screen-blur-overlay {
   position: fixed;
   inset: 0;
@@ -251,6 +251,7 @@
   bottom: 0;
   width: 100%;
   height: 100%;
+  height: 100dvh;
   z-index: 99999;
   background: rgba(16, 55, 92, 0.45);
   backdrop-filter: blur(16px) saturate(180%);
@@ -258,7 +259,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
   box-sizing: border-box;
   margin: 0;
 }
@@ -267,7 +268,7 @@
   background: #FFFFFF;
   border: 2.5px solid var(--color-navy);
   border-radius: var(--radius-card);
-  padding: 28px;
+  padding: 24px;
   max-width: 480px;
   width: 100%;
   box-shadow: 0 20px 48px rgba(16, 55, 92, 0.22);
@@ -276,7 +277,7 @@
 }
 
 .about-modal-text {
-  font-size: 1.02rem;
+  font-size: 0.98rem;
   line-height: 1.6;
   font-weight: 600;
   color: var(--color-navy);
@@ -284,17 +285,16 @@
 }
 
 @media (max-width: 980px) {
+  .home-page-container {
+    padding: 24px 16px;
+  }
   .hero-split-layout {
     grid-template-columns: 1fr;
-    gap: 36px;
+    gap: 32px;
     text-align: center;
   }
   .hero-left-pane {
     text-align: center;
-  }
-  .hero-first-line,
-  .hero-second-line {
-    white-space: normal;
   }
   .hero-corner-star-img {
     top: -24px;

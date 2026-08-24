@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 interface MathReferenceSheetProps {
   onClose: () => void;
@@ -22,11 +23,22 @@ const ROW_2_SVGS = [
 ];
 
 export default function MathReferenceSheet({ onClose }: MathReferenceSheetProps) {
-  const [position, setPosition] = useState({ x: 50, y: 60 });
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth <= 860);
+  const [position, setPosition] = useState({ x: 40, y: 50 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 860);
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) return;
+
     function handleMouseMove(e: MouseEvent) {
       if (!isDragging) return;
       setPosition({
@@ -48,7 +60,7 @@ export default function MathReferenceSheet({ onClose }: MathReferenceSheetProps)
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging, dragOffset]);
+  }, [isDragging, dragOffset, isMobile]);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -58,16 +70,21 @@ export default function MathReferenceSheet({ onClose }: MathReferenceSheetProps)
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div
-      className="reference-floating-window"
-      style={{
-        transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
-      }}
+      className={`reference-floating-window ${isMobile ? "is-mobile-fullscreen" : ""}`}
+      style={
+        !isMobile
+          ? {
+              transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
+            }
+          : undefined
+      }
     >
       <div
         className="reference-window-header"
         onMouseDown={(e) => {
+          if (isMobile) return;
           setIsDragging(true);
           setDragOffset({
             x: e.clientX - position.x,
@@ -76,10 +93,10 @@ export default function MathReferenceSheet({ onClose }: MathReferenceSheetProps)
         }}
       >
         <div className="reference-window-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M2 22h20M2 22l10-18 10 18M7 13h10" />
           </svg>
-          <span>Reference</span>
+          <span>Math Reference Sheet</span>
         </div>
         <button
           type="button"
@@ -96,7 +113,12 @@ export default function MathReferenceSheet({ onClose }: MathReferenceSheetProps)
         <div className="reference-formulas-row">
           {ROW_1_SVGS.map((item) => (
             <div key={item.id} className="reference-svg-cell">
-              <img src={item.file} alt={item.alt} className="reference-img" draggable={false} />
+              <img
+                src={item.file}
+                alt={item.alt}
+                className="reference-img"
+                draggable={false}
+              />
             </div>
           ))}
 
@@ -110,11 +132,16 @@ export default function MathReferenceSheet({ onClose }: MathReferenceSheetProps)
           </div>
         </div>
 
-        {/* Row 2: 3D Solids */}
+        {/* Row 2: 3D Solids & Additional Formulas */}
         <div className="reference-formulas-row">
           {ROW_2_SVGS.map((item) => (
             <div key={item.id} className="reference-svg-cell">
-              <img src={item.file} alt={item.alt} className="reference-img" draggable={false} />
+              <img
+                src={item.file}
+                alt={item.alt}
+                className="reference-img"
+                draggable={false}
+              />
             </div>
           ))}
         </div>
@@ -130,6 +157,7 @@ export default function MathReferenceSheet({ onClose }: MathReferenceSheetProps)
           </p>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

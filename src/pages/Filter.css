@@ -6,6 +6,8 @@
   flex-direction: column;
   gap: 24px;
   position: relative;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* Background Animated Blobs */
@@ -66,6 +68,7 @@
   font-weight: 800;
   letter-spacing: -0.5px;
   color: var(--color-navy);
+  line-height: 1.2;
 }
 
 .greeting-subtitle {
@@ -73,6 +76,7 @@
   font-weight: 600;
   color: #64748B;
   margin-left: 10px;
+  display: inline-block;
 }
 
 /* Default Desktop 3-Column Layout */
@@ -100,6 +104,10 @@
   font-weight: 700;
   color: #D97706;
   margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .today-prep-box {
@@ -170,12 +178,14 @@
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
   white-space: nowrap;
+  min-height: 36px;
+  touch-action: manipulation;
 }
 
 .matrix-status-btn.active {
   background: #FFFFFF;
   color: var(--color-navy);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 /* Checkbox Toggle with Smooth Pop Animation */
@@ -269,24 +279,26 @@
 .diff-dots-container {
   display: flex;
   gap: 6px;
+  align-items: center;
 }
 
 .diff-dot-button {
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   border: 1.5px solid;
   background: #FFFFFF;
   cursor: pointer;
   padding: 0;
   transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease;
+  touch-action: manipulation;
 }
 
 .diff-dot-button.is-active {
   transform: scale(1.18);
 }
 
-/* Fullscreen Blurred Modal Viewport */
+/* Fullscreen Blurred Modal Viewport (Diagnostics) */
 .stats-modal-card {
   background: #FFFFFF;
   border: 2.5px solid var(--color-navy);
@@ -310,6 +322,7 @@
   flex-direction: column;
   gap: 18px;
   flex: 1;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-header {
@@ -340,7 +353,7 @@
 .stats-tab-btn.active {
   background: #FFFFFF;
   color: var(--color-navy);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .modal-stat-grid {
@@ -510,7 +523,9 @@
   color: #64748B;
 }
 
-/* Responsive Overhaul for ~4:3 Screen / Medium Aspect Ratios */
+/* ==========================================================================
+   Responsive Overhaul for Medium & Mobile Aspect Ratios
+   ========================================================================== */
 @media (max-width: 1180px) and (min-width: 769px) {
   .filter-main-layout {
     display: grid;
@@ -538,14 +553,39 @@
 }
 
 @media (max-width: 768px) {
+  .filter-page {
+    padding: 20px 14px;
+    gap: 18px;
+  }
+  .filter-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .greeting-title {
+    font-size: 1.6rem;
+  }
+  .greeting-subtitle {
+    display: block;
+    margin-left: 0;
+    margin-top: 4px;
+    font-size: 0.92rem;
+  }
   .filter-main-layout {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
   }
   .filter-controls-pane { order: 1; width: 100%; }
   .modules-selection-pane { order: 2; width: 100%; }
   .calendar-pane { order: 3; width: 100%; }
-  .modal-stat-grid { grid-template-columns: repeat(2, 1fr); }
-  .domain-stat-bars-container { width: 180px; }
+  .filter-control-card {
+    padding: 16px 14px;
+  }
+  .modal-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .domain-stat-bars-container {
+    width: 180px;
+  }
 }

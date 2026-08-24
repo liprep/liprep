@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
@@ -88,6 +88,9 @@ export default function Practice() {
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [showEliminateMode, setShowEliminateMode] = useState(true);
 
+  // Responsive Detection
+  const [isMobileScreen, setIsMobileScreen] = useState(() => typeof window !== "undefined" && window.innerWidth <= 860);
+
   // Desmos Calculator States
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [isCalcDocked, setIsCalcDocked] = useState(false);
@@ -104,6 +107,18 @@ export default function Practice() {
 
   const timerSecondsRef = useRef<number>(0);
   timerSecondsRef.current = timerSeconds;
+
+  useEffect(() => {
+    function handleResize() {
+      setIsMobileScreen(window.innerWidth <= 860);
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const handleToggleCalculator = () => {
+    setIsCalculatorOpen((prev) => !prev);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -184,6 +199,8 @@ export default function Practice() {
   }, [isTimerRunning]);
 
   useEffect(() => {
+    if (isMobileScreen) return;
+
     function handleMouseMove(e: MouseEvent) {
       if (!isDraggingCalc || isCalcDocked) return;
       setCalcPosition({
@@ -202,9 +219,8 @@ export default function Practice() {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDraggingCalc, dragOffset, isCalcDocked]);
+  }, [isDraggingCalc, dragOffset, isCalcDocked, isMobileScreen]);
 
-  // Predictive Highlight & Majority De-highlight Engine
   function handleTextHighlight() {
     if (!isHighlightMode) return;
     const selection = window.getSelection();
@@ -217,7 +233,7 @@ export default function Practice() {
         ? (container as HTMLElement)
         : container.parentElement;
 
-    if (!rootEl || !rootEl.closest(".stimulus-column, .question-column")) {
+    if (!rootEl || !rootEl.closest(".stimulus-column, .question-column, .mobile-stimulus")) {
       return;
     }
 
@@ -229,9 +245,8 @@ export default function Practice() {
       return;
     }
 
-    // Target the closest active content container
     const searchScope = (container.nodeType === Node.TEXT_NODE ? container.parentNode : container) as HTMLElement;
-    const containerPane = rootEl.closest(".stimulus-column, .question-column") as HTMLElement;
+    const containerPane = rootEl.closest(".stimulus-column, .question-column, .mobile-stimulus") as HTMLElement;
     const effectiveContainer = searchScope || containerPane;
 
     const treeWalker = document.createTreeWalker(
@@ -294,11 +309,8 @@ export default function Practice() {
 
     if (totalLength === 0) return;
 
-    // Majority Rule: If strictly more than 50% of the touched selection is already highlighted,
-    // the user's intent is to un-highlight. Otherwise, the intent is to highlight.
     const isMajorityHighlighted = totalHighlightedLength > totalLength / 2;
 
-    // Process from back to front to preserve DOM character offsets during splits
     slices.reverse().forEach((slice) => {
       const { node, start, end, isHighlighted, isStart, isEnd } = slice;
       let targetNode = node;
@@ -311,7 +323,6 @@ export default function Practice() {
       }
 
       if (isMajorityHighlighted) {
-        // UN-HIGHLIGHT INTENT: Remove highlight wrapper if present
         if (isHighlighted) {
           const markContainer = targetNode.parentElement?.closest("mark.sat-highlight") as HTMLElement | null;
           if (markContainer && markContainer.parentNode) {
@@ -345,7 +356,6 @@ export default function Practice() {
           }
         }
       } else {
-        // HIGHLIGHT INTENT: Wrap unhighlighted text into <mark>
         if (!isHighlighted && targetNode.nodeValue && targetNode.nodeValue.length > 0) {
           if (!targetNode.parentElement?.closest("mark.sat-highlight")) {
             const mark = document.createElement("mark");
@@ -357,7 +367,6 @@ export default function Practice() {
       }
     });
 
-    // Clean up empty marks and merge adjacent <mark> tags into continuous highlights
     const allMarks = Array.from(effectiveContainer.querySelectorAll("mark.sat-highlight"));
     allMarks.forEach((mark) => {
       if (!mark.textContent || mark.textContent.length === 0) {
@@ -390,7 +399,19 @@ export default function Practice() {
   const isCorrect = isSubmitted && currentQ ? checkIsCorrect(currentQ, currentAnswer) : false;
   const isMathModule = currentQ?.module === "math";
 
-  const hasStimulus = !isMathModule && Boolean(currentQ?.stimulus);
+  const hasStimulus = !isMathModule && Boolean(currentQ?.stimulus && currentQ.stimulus.trim().length > 0);
+
+  const cleanStem = useMemo(() => {
+    if (!currentQ?.stem) return "";
+    if (hasStimulus && currentQ.stimulus) {
+      const trimmedStim = currentQ.stimulus.trim();
+      const trimmedStem = currentQ.stem.trim();
+      if (trimmedStem.startsWith(trimmedStim)) {
+        return trimmedStem.slice(trimmedStim.length).trim();
+      }
+    }
+    return currentQ.stem;
+  }, [currentQ?.stem, currentQ?.stimulus, hasStimulus]);
 
   const handleNavigate = useCallback((index: number) => {
     setCurrentIndex(index);
@@ -516,7 +537,7 @@ export default function Practice() {
           </span>
         </div>
 
-        {/* Dead Center Timer */}
+        {/* Center Timer */}
         <div className="top-bar-center-dead-center">
           <div className="timer-pill-group">
             <button
@@ -554,7 +575,7 @@ export default function Practice() {
             <button
               type="button"
               className={`tool-button ${isCalculatorOpen ? "active" : ""}`}
-              onClick={() => setIsCalculatorOpen(!isCalculatorOpen)}
+              onClick={handleToggleCalculator}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="4" y="2" width="16" height="20" rx="2" />
@@ -596,11 +617,12 @@ export default function Practice() {
       {/* Main Viewport */}
       <div
         className={`bluebook-viewport ${
-          !hasStimulus && !(isCalculatorOpen && isCalcDocked) ? "no-stimulus" : ""
+          !hasStimulus && !(isCalculatorOpen && isCalcDocked && !isMobileScreen) ? "no-stimulus" : ""
         }`}
         onMouseUp={handleTextHighlight}
       >
-        {isCalculatorOpen && isCalcDocked ? (
+        {/* DESKTOP ONLY: Docked Desmos Left Column */}
+        {isCalculatorOpen && isCalcDocked && !isMobileScreen ? (
           <aside className="stimulus-column docked-desmos-pane">
             <div className="docked-desmos-header">
               <span style={{ fontWeight: 800, fontSize: "0.9rem", color: "#082A4D" }}>
@@ -618,6 +640,7 @@ export default function Practice() {
             <div className="docked-calc-slot" />
           </aside>
         ) : (
+          /* DESKTOP ONLY: EBRW Left Passage Column */
           hasStimulus && (
             <aside className="stimulus-column">
               <RichContent content={currentQ.stimulus} />
@@ -625,8 +648,9 @@ export default function Practice() {
           )
         )}
 
+        {/* Right Column (Desktop) / Main Scroll Area (Mobile) */}
         <main className="question-column">
-          {/* Question Strap */}
+          {/* Question Strap Bar */}
           <div className="bb-question-strap">
             <div className="bb-strap-left">
               <div className="bb-number-square">{currentIndex + 1}</div>
@@ -659,19 +683,22 @@ export default function Practice() {
             </div>
           </div>
 
-          {/* Mobile EBRW Stimulus (Passage) placed right under the question strap */}
+          {/* MOBILE ONLY: Passage sits cleanly under question strap */}
           {hasStimulus && (
             <div className="mobile-stimulus">
               <RichContent content={currentQ.stimulus} />
             </div>
           )}
 
+          {/* Math Prompt / Context */}
           {isMathModule && currentQ.stimulus && (
             <RichContent content={currentQ.stimulus} className="stem-container" />
           )}
 
-          <RichContent content={currentQ.stem} className="stem-container" />
+          {/* Question Stem */}
+          <RichContent content={cleanStem} className="stem-container" />
 
+          {/* Answer Options */}
           {currentQ.type === "mcq" ? (
             <div style={{ marginTop: "14px" }}>
               {currentQ.answerOptions.map((opt, i) => {
@@ -771,13 +798,19 @@ export default function Practice() {
         </main>
       </div>
 
-      {/* Floating / Docked Desmos */}
+      {/* Floating / Docked / Mobile Fullscreen Desmos Calculator */}
       <div
         className={`desmos-persistent-frame ${
-          isCalculatorOpen ? (isCalcDocked ? "frame-docked" : "frame-floating") : "frame-hidden"
+          isCalculatorOpen
+            ? isMobileScreen
+              ? "is-mobile-fullscreen"
+              : isCalcDocked
+              ? "frame-docked"
+              : "frame-floating"
+            : "frame-hidden"
         }`}
         style={
-          isCalculatorOpen && !isCalcDocked
+          isCalculatorOpen && !isCalcDocked && !isMobileScreen
             ? { transform: `translate3d(${calcPosition.x}px, ${calcPosition.y}px, 0)` }
             : undefined
         }
@@ -785,7 +818,7 @@ export default function Practice() {
         <div
           className="desmos-window-header"
           onMouseDown={(e) => {
-            if (isCalcDocked) return;
+            if (isCalcDocked || isMobileScreen) return;
             setIsDraggingCalc(true);
             setDragOffset({
               x: e.clientX - calcPosition.x,
@@ -800,7 +833,7 @@ export default function Practice() {
             </span>
           </div>
           <div className="desmos-window-controls">
-            {!isCalcDocked ? (
+            {!isMobileScreen && !isCalcDocked && (
               <button
                 type="button"
                 className="desmos-control-btn"
@@ -808,7 +841,8 @@ export default function Practice() {
               >
                 ⤓ Dock
               </button>
-            ) : (
+            )}
+            {!isMobileScreen && isCalcDocked && (
               <button
                 type="button"
                 className="desmos-control-btn"
@@ -819,10 +853,11 @@ export default function Practice() {
             )}
             <button
               type="button"
-              className="desmos-control-btn"
+              className="desmos-control-btn desmos-control-btn-close"
               onClick={() => setIsCalculatorOpen(false)}
+              aria-label="Close calculator"
             >
-              ✕
+              {isMobileScreen ? "✕ Back to Question" : "✕"}
             </button>
           </div>
         </div>
@@ -845,7 +880,15 @@ export default function Practice() {
             <span>{isNavOpen ? "▲" : "▼"}</span>
           </button>
 
-          {/* Question Review Grid Popover */}
+          {/* Backdrop for mobile drawer */}
+          {isNavOpen && (
+            <div
+              className="bb-review-mobile-backdrop"
+              onClick={() => setIsNavOpen(false)}
+            />
+          )}
+
+          {/* Question Review Grid Popover / Mobile Full-Width Drawer */}
           {isNavOpen && (
             <div className="bb-review-sheet">
               <div className="bb-review-header">
@@ -854,6 +897,7 @@ export default function Practice() {
                   type="button"
                   className="bb-review-close-btn"
                   onClick={() => setIsNavOpen(false)}
+                  aria-label="Close question drawer"
                 >
                   ✕
                 </button>
@@ -876,7 +920,7 @@ export default function Practice() {
                 </div>
                 <div className="bb-legend-item">
                   <span className="bb-legend-icon legend-icon-retried">●</span>
-                  <span>Upsolved (retried)</span>
+                  <span>Upsolved</span>
                 </div>
               </div>
 

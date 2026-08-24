@@ -11,6 +11,7 @@
   bottom: 0;
   width: 100%;
   height: 100%;
+  height: 100dvh;
   z-index: 99999;
   background: rgba(16, 55, 92, 0.45);
   backdrop-filter: blur(14px) saturate(160%);
@@ -44,22 +45,23 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 28px;
+  padding: 16px 24px;
   background: #FFFFFF;
   border-bottom: 2px solid var(--color-border);
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
 .analytics-header-left {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  min-width: 0;
 }
 
 .analytics-badge-icon {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
   background: var(--color-navy);
   color: var(--color-gold);
@@ -70,18 +72,20 @@
 }
 
 .analytics-title-main {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 800;
   color: var(--color-navy);
   margin: 0;
   letter-spacing: -0.4px;
+  line-height: 1.2;
 }
 
 .analytics-subtitle {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: #64748B;
   font-weight: 600;
   margin: 2px 0 0;
+  line-height: 1.3;
 }
 
 /* Tabs */
@@ -92,12 +96,19 @@
   border-radius: 12px;
   padding: 4px;
   gap: 3px;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.analytics-tabs-track::-webkit-scrollbar {
+  display: none;
 }
 
 .analytics-tab-btn {
   border: none;
   background: transparent;
-  padding: 7px 14px;
+  padding: 8px 14px;
   font-size: 0.84rem;
   font-weight: 700;
   color: #64748B;
@@ -107,6 +118,10 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-height: 38px;
+  touch-action: manipulation;
 }
 
 .analytics-tab-btn svg {
@@ -128,8 +143,8 @@
   border: 2px solid var(--color-navy);
   background: #FFFFFF;
   color: var(--color-navy);
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
   font-weight: 800;
   font-size: 1.1rem;
@@ -139,6 +154,8 @@
   cursor: pointer;
   box-shadow: 0 2px 0 var(--color-navy);
   transition: transform 0.1s ease, box-shadow 0.1s ease;
+  flex-shrink: 0;
+  touch-action: manipulation;
 }
 
 .analytics-close-btn:hover {
@@ -156,6 +173,7 @@
 .analytics-body-scroll {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 24px 28px 36px;
   display: flex;
   flex-direction: column;
@@ -197,6 +215,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
+  gap: 8px;
 }
 
 .kpi-label-cluster {
@@ -218,6 +237,7 @@
   font-weight: 800;
   padding: 2px 8px;
   border-radius: 10px;
+  white-space: nowrap;
 }
 
 .kpi-val-row {
@@ -239,6 +259,7 @@
   font-weight: 600;
   color: #64748B;
   margin-top: 6px;
+  line-height: 1.4;
 }
 
 /* Chart Canvas Card Frame */
@@ -287,6 +308,7 @@
   font-size: 0.78rem;
   font-weight: 700;
   color: #475569;
+  flex-wrap: wrap;
 }
 
 .legend-dot-item {
@@ -345,6 +367,7 @@
   align-items: center;
   justify-content: space-between;
   font-size: 0.86rem;
+  gap: 8px;
 }
 
 .telemetry-label {
@@ -365,6 +388,7 @@
   width: 100%;
   height: auto;
   overflow: visible;
+  display: block;
 }
 
 .radar-polygon-first {
@@ -402,7 +426,7 @@
   stroke-linecap: round;
 }
 
-/* Quad Matrix (Stationary on hover to prevent cursor flickering) */
+/* Quad Matrix */
 .quad-point-node {
   cursor: pointer;
   transition: stroke-width 0.12s ease, stroke 0.12s ease, filter 0.12s ease;
@@ -528,6 +552,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  flex-shrink: 0;
 }
 
 .action-acc-badge {
@@ -541,12 +566,13 @@
   color: #FFFFFF;
   border: none;
   border-radius: 8px;
-  padding: 6px 14px;
+  padding: 8px 14px;
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s ease, transform 0.1s ease;
   white-space: nowrap;
+  touch-action: manipulation;
 }
 
 .action-drill-btn:hover {
@@ -574,18 +600,22 @@
   border-radius: 10px;
   padding: 3px;
   gap: 2px;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .hierarchy-filter-pill-btn {
   border: none;
   background: transparent;
-  padding: 6px 14px;
+  padding: 7px 14px;
   font-size: 0.8rem;
   font-weight: 700;
   color: #64748B;
   border-radius: 7px;
   cursor: pointer;
   transition: all 0.12s ease;
+  white-space: nowrap;
+  touch-action: manipulation;
 }
 
 .hierarchy-filter-pill-btn:hover:not(.active) {
@@ -605,7 +635,7 @@
   background: #FFFFFF;
   border: 1.5px solid #CBD5E1;
   border-radius: 10px;
-  padding: 6px 12px;
+  padding: 8px 12px;
   flex: 1;
   max-width: 320px;
   min-width: 200px;
@@ -653,7 +683,7 @@
   padding: 16px 20px;
   background: #F8FAFC;
   border-bottom: 1.5px solid #E2E8F0;
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
@@ -661,6 +691,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .domain-badge-pill {
@@ -670,6 +701,7 @@
   border-radius: 8px;
   text-transform: uppercase;
   letter-spacing: 0.4px;
+  flex-shrink: 0;
 }
 
 .domain-badge-pill.pill-math {
@@ -694,10 +726,11 @@
 .domain-header-telemetry {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
   font-size: 0.82rem;
   color: #64748B;
   font-weight: 600;
+  flex-wrap: wrap;
 }
 
 .domain-header-metric-pill {
@@ -708,6 +741,7 @@
   padding: 5px 10px;
   border-radius: 8px;
   border: 1px solid #E2E8F0;
+  white-space: nowrap;
 }
 
 .domain-header-metric-pill strong {
@@ -743,13 +777,14 @@
   flex-direction: column;
   gap: 4px;
   flex: 1.4;
-  min-width: 220px;
+  min-width: 200px;
 }
 
 .skill-title-cluster {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .skill-row-title {
@@ -765,6 +800,7 @@
   border-radius: 6px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
 .status-mastered {
@@ -790,20 +826,21 @@
 .skill-metrics-grid {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
   flex: 2;
   justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
 .skill-metric-item {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  min-width: 90px;
+  min-width: 80px;
 }
 
 .skill-metric-item.metric-wide {
-  min-width: 140px;
+  min-width: 130px;
 }
 
 .metric-label-micro {
@@ -855,6 +892,7 @@
   font-size: 0.84rem;
   font-weight: 600;
   color: #64748B;
+  line-height: 1.4;
 }
 
 .footer-meta-stats strong {
@@ -869,13 +907,17 @@
   font-weight: 700;
   cursor: pointer;
   text-decoration: underline;
-  padding: 4px 8px;
+  padding: 6px 8px;
+  touch-action: manipulation;
 }
 
 .btn-danger-link:hover {
   color: #991B1B;
 }
 
+/* ==========================================================================
+   Mobile & Tablet Full-Screen Diagnostic Mode
+   ========================================================================== */
 @media (max-width: 960px) {
   .executive-kpi-banner {
     grid-template-columns: repeat(2, 1fr);
@@ -885,9 +927,6 @@
   .module-comparison-grid {
     grid-template-columns: 1fr;
   }
-  .analytics-modal-shell {
-    height: 96vh;
-  }
   .skill-modern-row {
     flex-direction: column;
     align-items: flex-start;
@@ -896,29 +935,179 @@
   .skill-metrics-grid {
     width: 100%;
     justify-content: space-between;
-    flex-wrap: wrap;
     gap: 12px;
   }
 }
 
-@media (max-width: 640px) {
-  .executive-kpi-banner {
-    grid-template-columns: 1fr;
+@media (max-width: 768px) {
+  .analytics-overlay {
+    padding: 0;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: #FFFFFF;
   }
+
+  .analytics-modal-shell {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    max-width: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
   .analytics-top-header {
-    padding: 14px 18px;
+    padding: 12px 16px;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: 0 2px 8px rgba(16, 55, 92, 0.06);
   }
-  .analytics-body-scroll {
-    padding: 14px 16px;
+
+  .analytics-header-left {
+    flex: 1;
   }
-  .analytics-tab-btn span {
+
+  .analytics-title-main {
+    font-size: 1.15rem;
+  }
+
+  .analytics-subtitle {
     display: none;
   }
+
+  .analytics-badge-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .analytics-tabs-track {
+    width: 100%;
+    order: 3;
+    margin-top: 2px;
+    padding: 3px;
+  }
+
+  .analytics-tab-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    min-height: 34px;
+  }
+
+  .analytics-body-scroll {
+    padding: 16px 14px 28px;
+    gap: 18px;
+  }
+
+  .executive-kpi-banner {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .kpi-stat-card {
+    padding: 14px 16px;
+  }
+
+  .kpi-value-huge {
+    font-size: 1.9rem;
+  }
+
+  .chart-panel-card {
+    padding: 16px 14px;
+  }
+
+  .chart-panel-header {
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+  }
+
+  .chart-title-cluster h3 {
+    font-size: 0.98rem;
+  }
+
   .hierarchy-filter-toolbar {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
   }
+
+  .hierarchy-module-filter-pills {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .hierarchy-filter-pill-btn {
+    flex: 1;
+    text-align: center;
+    padding: 6px 8px;
+    font-size: 0.76rem;
+  }
+
   .hierarchy-search-box {
     max-width: 100%;
+    min-width: 0;
+    padding: 7px 10px;
+  }
+
+  .domain-modern-header {
+    padding: 12px 14px;
+  }
+
+  .domain-modern-title {
+    font-size: 0.95rem;
+  }
+
+  .domain-header-telemetry {
+    width: 100%;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .domain-header-metric-pill {
+    flex: 1;
+    justify-content: center;
+    padding: 4px 6px;
+    font-size: 0.74rem;
+  }
+
+  .skill-modern-row {
+    padding: 12px 14px;
+  }
+
+  .skill-info-column {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .action-priority-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .action-item-left {
+    width: 100%;
+  }
+
+  .action-item-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .analytics-footer-bar {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .btn-danger-link {
+    padding: 8px;
+    width: 100%;
   }
 }

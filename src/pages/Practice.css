@@ -7,6 +7,7 @@
   user-select: text;
   font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   position: relative;
+  overflow-x: hidden;
 }
 
 /* Text Highlighting Engine */
@@ -38,15 +39,19 @@ mark.sat-highlight {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .section-title-badge {
   font-weight: 700;
   font-size: 0.95rem;
   color: #082A4D;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Dead-center timer */
+/* Dead-center timer on desktop */
 .top-bar-center-dead-center {
   position: absolute;
   left: 50%;
@@ -77,6 +82,7 @@ mark.sat-highlight {
   font-size: 0.88rem;
   cursor: pointer;
   color: #1E293B;
+  touch-action: manipulation;
 }
 
 .timer-pause-btn {
@@ -87,6 +93,7 @@ mark.sat-highlight {
   cursor: pointer;
   font-size: 0.8rem;
   color: #1E293B;
+  touch-action: manipulation;
 }
 
 .timer-pause-btn:hover {
@@ -97,11 +104,13 @@ mark.sat-highlight {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .tool-button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   background: #FFFFFF;
   border: 1.5px solid #CBD5E1;
@@ -113,6 +122,8 @@ mark.sat-highlight {
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
   white-space: nowrap;
+  min-height: 34px;
+  touch-action: manipulation;
 }
 
 .tool-button:hover {
@@ -135,10 +146,12 @@ mark.sat-highlight {
   color: #FFFFFF;
   font-weight: 700;
   font-size: 0.95rem;
-  border-radius: 6px;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
   transition: background-color 0.15s ease;
+  min-height: 42px;
+  touch-action: manipulation;
 }
 
 .bluebook-primary-btn:hover:not(:disabled) {
@@ -158,7 +171,9 @@ mark.sat-highlight {
   border-radius: 4px;
 }
 
-/* Split Viewport */
+/* ==========================================================================
+   Split Viewport (Desktop)
+   ========================================================================== */
 .bluebook-viewport {
   flex: 1;
   display: grid;
@@ -179,10 +194,12 @@ mark.sat-highlight {
   overflow-y: auto;
   font-size: 1.05rem;
   line-height: 1.7;
+  display: block;
 }
 
+/* Never show inline mobile stimulus on desktop */
 .mobile-stimulus {
-  display: none;
+  display: none !important;
 }
 
 .question-column {
@@ -202,6 +219,7 @@ mark.sat-highlight {
   border-radius: 8px;
   padding: 8px 12px;
   margin-bottom: 24px;
+  gap: 8px;
 }
 
 .bb-strap-left {
@@ -221,6 +239,7 @@ mark.sat-highlight {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .bb-mark-review-btn {
@@ -235,6 +254,7 @@ mark.sat-highlight {
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 4px;
+  touch-action: manipulation;
 }
 
 .bb-mark-review-btn.is-marked {
@@ -245,6 +265,7 @@ mark.sat-highlight {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .bb-mode-tool-btn {
@@ -257,6 +278,9 @@ mark.sat-highlight {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 32px;
+  min-width: 32px;
+  touch-action: manipulation;
 }
 
 .bb-mode-tool-btn.is-active {
@@ -272,7 +296,7 @@ mark.sat-highlight {
   margin-bottom: 24px;
 }
 
-/* Docked Left Column Pane */
+/* Docked Desmos Left Pane (Desktop Only) */
 .docked-desmos-pane {
   display: flex;
   flex-direction: column;
@@ -301,6 +325,7 @@ mark.sat-highlight {
 .spr-container {
   margin-top: 16px;
   max-width: 320px;
+  width: 100%;
 }
 
 .spr-label {
@@ -316,9 +341,10 @@ mark.sat-highlight {
   font-size: 1.2rem;
   font-weight: 700;
   border: 2px solid #94A3B8;
-  border-radius: 6px;
+  border-radius: 8px;
   color: #082A4D;
   outline: none;
+  box-sizing: border-box;
 }
 
 .spr-input:focus {
@@ -365,6 +391,7 @@ mark.sat-highlight {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
 }
 
 .rationale-body {
@@ -372,6 +399,7 @@ mark.sat-highlight {
   font-size: 0.95rem;
   line-height: 1.65;
   color: #1E293B;
+  overflow-x: auto;
 }
 
 .attempt-history-body {
@@ -390,6 +418,8 @@ mark.sat-highlight {
   border-radius: 6px;
   padding: 8px 12px;
   font-size: 0.88rem;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .attempt-item-badge {
@@ -432,6 +462,7 @@ mark.sat-highlight {
   position: sticky;
   bottom: 0;
   z-index: 50;
+  gap: 10px;
 }
 
 .question-nav-popover-btn {
@@ -442,9 +473,12 @@ mark.sat-highlight {
   font-weight: 600;
   background: #F8FAFC;
   border: 1.5px solid #CBD5E1;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   color: #082A4D;
+  font-size: 0.88rem;
+  min-height: 40px;
+  touch-action: manipulation;
 }
 
 /* Question Review Popover Drawer */
@@ -453,14 +487,17 @@ mark.sat-highlight {
   bottom: 74px;
   left: 20px;
   background: #FFFFFF;
-  border: 1.5px solid #E2E8F0;
+  border: 2px solid #082A4D;
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.16);
-  width: 380px;
-  max-height: 480px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+  width: 400px;
+  max-width: calc(100vw - 32px);
+  max-height: 520px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   z-index: 100;
+  box-sizing: border-box;
 }
 
 .bb-review-header {
@@ -468,6 +505,7 @@ mark.sat-highlight {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 14px;
+  gap: 8px;
 }
 
 .bb-review-title {
@@ -477,11 +515,23 @@ mark.sat-highlight {
 }
 
 .bb-review-close-btn {
-  background: transparent;
-  border: none;
-  font-size: 1.1rem;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  font-size: 1rem;
+  font-weight: 800;
   cursor: pointer;
-  color: #64748B;
+  color: #082A4D;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+}
+
+.bb-review-close-btn:hover {
+  background: #E2E8F0;
 }
 
 .bb-review-legend {
@@ -520,6 +570,7 @@ mark.sat-highlight {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 8px;
+  width: 100%;
 }
 
 .bb-grid-cell {
@@ -528,31 +579,40 @@ mark.sat-highlight {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
+  border: 1.5px solid transparent;
   border-radius: 10px;
   font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.bb-grid-cell:hover {
+  transform: scale(1.04);
 }
 
 .bb-grid-cell.is-current-cell {
-  box-shadow: 0 0 0 2px #000000;
+  box-shadow: 0 0 0 2.5px #000000;
 }
 
 /* Difficulty Band Colors */
 .bb-grid-cell.diff-easy {
   background-color: #DCFCE7;
   color: #166534;
+  border-color: #BBF7D0;
 }
 
 .bb-grid-cell.diff-med {
   background-color: #FEF3C7;
   color: #B45309;
+  border-color: #FDE68A;
 }
 
 .bb-grid-cell.diff-hard {
   background-color: #FEE2E2;
   color: #991B1B;
+  border-color: #FECACA;
 }
 
 .bb-cell-top-icons {
@@ -573,7 +633,14 @@ mark.sat-highlight {
 .badge-incorrect { color: #DC2626; }
 .badge-retried { color: #D97706; }
 
-/* Desmos */
+/* Backdrop overlay on mobile for review drawer */
+.bb-review-mobile-backdrop {
+  display: none;
+}
+
+/* ==========================================================================
+   Desmos Calculator Frame
+   ========================================================================== */
 .desmos-persistent-frame {
   background: #FFFFFF;
   border: 2px solid #082A4D;
@@ -627,7 +694,7 @@ mark.sat-highlight {
 }
 
 .desmos-window-header {
-  height: 38px;
+  height: 44px;
   background: #082A4D;
   color: #FFFFFF;
   display: flex;
@@ -647,46 +714,59 @@ mark.sat-highlight {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .desmos-window-controls {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .desmos-control-btn {
-  background: transparent;
-  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   color: #FFFFFF;
   font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
-  padding: 3px 8px;
-  border-radius: 4px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  touch-action: manipulation;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .desmos-control-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.desmos-control-btn-close {
+  font-size: 1.1rem;
+  padding: 4px 10px;
+  font-weight: 800;
 }
 
 .desmos-iframe-embed {
   flex: 1;
   width: 100%;
-  height: calc(100% - 38px);
+  height: calc(100% - 44px);
   border: none;
   background: #FFFFFF;
 }
 
-/* Floating Reference Sheet */
+/* ==========================================================================
+   Math Formula Reference Sheet (Portal with Zero Border Pollution)
+   ========================================================================== */
 .reference-floating-window {
   position: fixed;
   top: 0;
   left: 0;
   width: 880px;
   height: 600px;
-  min-width: 500px;
+  min-width: 0;
   min-height: 380px;
   max-width: 95vw;
   max-height: 90vh;
@@ -695,15 +775,38 @@ mark.sat-highlight {
   background: #FFFFFF;
   border: 2px solid #082A4D;
   border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(8, 42, 77, 0.25);
+  box-shadow: 0 16px 48px rgba(8, 42, 77, 0.3);
   display: flex;
   flex-direction: column;
-  z-index: 140;
+  z-index: 999999;
   box-sizing: border-box;
 }
 
+.reference-floating-window.is-mobile-fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  width: 100dvw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-width: 0 !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
+  border: none !important;
+  border-radius: 0 !important;
+  transform: none !important;
+  resize: none !important;
+  z-index: 999999 !important;
+  box-sizing: border-box !important;
+}
+
 .reference-window-header {
-  height: 42px;
+  height: 52px;
   background: #082A4D;
   color: #FFFFFF;
   display: flex;
@@ -713,35 +816,63 @@ mark.sat-highlight {
   cursor: grab;
   user-select: none;
   flex-shrink: 0;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.reference-floating-window.is-mobile-fullscreen .reference-window-header {
+  cursor: default;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
 }
 
 .reference-window-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  font-size: 0.95rem;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  min-width: 0;
 }
 
 .reference-window-close-btn {
-  background: transparent;
-  border: none;
-  color: #FFFFFF;
-  font-weight: 700;
-  font-size: 0.9rem;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.5) !important;
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  font-size: 1.3rem !important;
+  cursor: pointer !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 8px !important;
+  touch-action: manipulation !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  flex-shrink: 0 !important;
+  transition: background 0.12s ease;
+  margin-left: 12px;
+}
+
+.reference-window-close-btn:hover {
+  background: rgba(255, 255, 255, 0.35) !important;
 }
 
 .reference-window-content {
   flex: 1;
   overflow-y: auto;
-  padding: 24px 30px;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 24px 20px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 24px;
   background: #FFFFFF;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .reference-formulas-row {
@@ -749,21 +880,27 @@ mark.sat-highlight {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-around;
-  gap: 20px;
+  gap: 18px;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .reference-svg-cell {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 160px;
-  flex: 1 1 180px;
+  height: 150px;
+  flex: 1 1 160px;
   max-width: 260px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  box-sizing: border-box;
 }
 
 .reference-svg-cell.reference-cell-double {
-  flex: 2 1 360px;
+  flex: 2 1 320px;
   max-width: 520px;
 }
 
@@ -788,14 +925,17 @@ mark.sat-highlight {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .reference-rule-text {
   font-size: 1.05rem;
-  line-height: 1.5;
+  line-height: 1.55;
   color: #1A202C;
   margin: 0;
   font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  word-break: break-word;
 }
 
 .reference-rule-text em {
@@ -803,53 +943,260 @@ mark.sat-highlight {
   font-family: serif;
 }
 
+/* ==========================================================================
+   Mobile & Tablet Responsive Overrides (< 860px)
+   ========================================================================== */
 @media (max-width: 860px) {
   .bluebook-top-bar {
-    padding: 0 12px;
-    gap: 8px;
+    padding: 0 10px;
+    gap: 6px;
+    height: 52px;
   }
+
+  .top-bar-left-cluster {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .section-title-badge {
+    font-size: 0.82rem;
+  }
+
+  .top-bar-center-dead-center {
+    position: static;
+    transform: none;
+    order: 2;
+  }
+
+  .timer-pill-group .timer-pill {
+    padding: 3px 8px;
+    font-size: 0.8rem;
+  }
+
+  .timer-pause-btn {
+    padding: 3px 8px;
+    font-size: 0.75rem;
+  }
+
+  .top-bar-tools {
+    order: 3;
+    gap: 4px;
+  }
+
   .btn-label-responsive {
     display: none;
   }
+
   .tool-button {
     padding: 6px 8px;
+    min-height: 32px;
   }
-  .section-title-badge {
-    font-size: 0.88rem;
-  }
+
+  /* Single Column Layout */
   .bluebook-viewport {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    min-height: calc(100vh - 116px);
   }
-  .stimulus-column:not(.docked-desmos-pane) {
-    display: none;
+
+  /* Never show desktop left column on mobile */
+  .stimulus-column {
+    display: none !important;
   }
+
+  /* Question column stream */
+  .question-column {
+    padding: 18px 14px 28px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Mobile inline stimulus under question strap */
   .mobile-stimulus {
-    display: block;
+    display: block !important;
     margin-bottom: 20px;
     padding-bottom: 20px;
     border-bottom: 1.5px solid #E2E8F0;
-    font-size: 1.05rem;
-    line-height: 1.7;
+    font-size: 1rem;
+    line-height: 1.65;
   }
-  .stimulus-column {
-    border-right: none;
-    border-bottom: 1.5px solid #E2E8F0;
-    padding: 20px 16px;
+
+  .stem-container {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 18px;
   }
-  .question-column {
-    padding: 20px 16px;
+
+  .bb-question-strap {
+    padding: 6px 10px;
+    margin-bottom: 18px;
   }
-  .desmos-persistent-frame.frame-floating {
-    width: 94vw;
-    height: 55vh;
-    left: 3vw !important;
-    top: 60px !important;
+
+  .bb-mark-review-btn {
+    font-size: 0.85rem;
+  }
+
+  /* DESMOS FULLSCREEN ON MOBILE */
+  .desmos-persistent-frame.is-mobile-fullscreen {
+    position: fixed !important;
+    inset: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    border: none !important;
+    border-radius: 0 !important;
     transform: none !important;
+    box-shadow: none !important;
+    z-index: 999998 !important;
   }
-  .desmos-persistent-frame.frame-docked {
-    width: 100%;
-    position: relative;
+
+  .desmos-persistent-frame.is-mobile-fullscreen .desmos-window-header {
+    height: 48px;
+    padding: 0 14px;
+    position: sticky;
     top: 0;
-    height: 380px;
+    z-index: 10;
+  }
+
+  .desmos-persistent-frame.is-mobile-fullscreen .desmos-iframe-embed {
+    height: calc(100% - 48px);
+  }
+
+  .bluebook-bottom-bar {
+    padding: 0 12px;
+    height: 60px;
+  }
+
+  .question-nav-popover-btn {
+    padding: 6px 10px;
+    font-size: 0.82rem;
+  }
+
+  .bluebook-primary-btn {
+    padding: 8px 16px;
+    font-size: 0.88rem;
+  }
+
+  /* FULL-WIDTH MOBILE QUESTION REVIEW DRAWER */
+  .bb-review-mobile-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 42, 77, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 99;
+  }
+
+  .bb-review-sheet {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    width: 100dvw !important;
+    max-width: 100vw !important;
+    max-height: 80vh !important;
+    max-height: 80dvh !important;
+    border-radius: 20px 20px 0 0 !important;
+    border: none !important;
+    border-top: 2.5px solid #082A4D !important;
+    padding: 20px 16px 28px !important;
+    box-shadow: 0 -12px 36px rgba(8, 42, 77, 0.3) !important;
+    z-index: 100 !important;
+    box-sizing: border-box !important;
+    animation: slideUpDrawer 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes slideUpDrawer {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .bb-review-header {
+    margin-bottom: 12px;
+  }
+
+  .bb-review-title {
+    font-size: 1.15rem;
+  }
+
+  .bb-review-close-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.15rem;
+  }
+
+  .bb-review-legend {
+    gap: 8px 14px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+  }
+
+  .bb-review-grid {
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .bb-grid-cell {
+    font-size: 1rem;
+    min-height: 52px;
+  }
+
+  /* Reference Sheet Mobile Layout */
+  .reference-window-header {
+    height: 48px;
+    padding: 0 12px;
+  }
+
+  .reference-window-title {
+    font-size: 0.95rem;
+  }
+
+  .reference-window-content {
+    padding: 16px 12px 28px;
+    gap: 18px;
+  }
+
+  .reference-formulas-row {
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .reference-svg-cell {
+    height: 100px;
+    flex: 1 1 130px;
+    max-width: 48%;
+  }
+
+  .reference-svg-cell.reference-cell-double {
+    flex: 1 1 100%;
+    max-width: 100%;
+    height: 130px;
+  }
+
+  .reference-img {
+    max-height: 95px;
+  }
+
+  .reference-img-double {
+    max-height: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bb-review-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .bb-grid-cell {
+    min-height: 56px;
   }
 }

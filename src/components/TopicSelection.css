@@ -3,6 +3,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   flex: 1;
+  width: 100%;
 }
 
 .module-column-card {
@@ -16,6 +17,7 @@
   max-height: 720px;
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .module-card-header {
@@ -25,31 +27,35 @@
   margin-bottom: 16px;
   padding-bottom: 12px;
   border-bottom: 2px solid #E2E8F0;
+  gap: 8px;
 }
 
 .title-with-cosmetics {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  min-width: 0;
 }
 
 .module-badge-title {
   font-size: 1.35rem;
   font-weight: 800;
   color: var(--color-navy);
+  white-space: nowrap;
 }
 
 .header-cosmetic-icons {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .cosmetic-svg-icon {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
   display: block;
+  flex-shrink: 0;
 }
 
 .module-select-all-btn {
@@ -61,10 +67,13 @@
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 6px;
+  white-space: nowrap;
+  touch-action: manipulation;
 }
 
 .domain-scroll-area {
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding-right: 6px;
   display: flex;
   flex-direction: column;
@@ -87,6 +96,8 @@
   color: var(--color-navy);
   font-size: 0.95rem;
   user-select: none;
+  gap: 8px;
+  touch-action: manipulation;
 }
 
 .domain-header-left {
@@ -94,6 +105,12 @@
   align-items: center;
   gap: 10px;
   flex: 1;
+  min-width: 0;
+}
+
+.domain-header-left span {
+  word-break: break-word;
+  line-height: 1.35;
 }
 
 /* Smooth Animated Custom Checkboxes */
@@ -179,6 +196,7 @@
   color: #334155;
   cursor: pointer;
   user-select: none;
+  touch-action: manipulation;
 }
 
 .subtopic-left {
@@ -204,5 +222,13 @@
 @media (max-width: 900px) {
   .topic-selection-container {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .module-column-card {
+    padding: 16px 14px;
+    max-height: 520px;
+  }
+  .subtopic-list {
+    padding-left: 20px;
   }
 }

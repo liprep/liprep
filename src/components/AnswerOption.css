@@ -1,8 +1,8 @@
 .bb-option-row {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 12px;
   position: relative;
   width: 100%;
 }
@@ -11,9 +11,9 @@
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 16px;
-  min-height: 58px;
-  padding: 12px 20px;
+  gap: 14px;
+  min-height: 54px;
+  padding: 10px 16px;
   background: #FFFFFF;
   border: 1.5px solid #000000;
   border-radius: 12px;
@@ -21,6 +21,8 @@
   text-align: left;
   transition: background-color 0.1s ease, border-color 0.1s ease;
   font-family: inherit;
+  min-width: 0;
+  touch-action: manipulation;
 }
 
 .bb-option-pill:hover:not(:disabled) {
@@ -32,22 +34,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
   border: 1.5px solid #000000;
   border-radius: 50%;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: #000000;
   background: #FFFFFF;
 }
 
 .bb-option-text {
   flex: 1;
-  font-size: 1.05rem;
-  line-height: 1.5;
+  font-size: 1rem;
+  line-height: 1.45;
   color: #000000;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 
 /* Selected State */
@@ -62,13 +67,13 @@
   border-color: #082A4D;
 }
 
-/* Strikethrough Eliminate Button (Letter with strike line across) */
+/* Strikethrough Eliminate Button */
 .bb-strikethrough-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
   border: 1.5px solid #000000;
   border-radius: 50%;
@@ -76,10 +81,11 @@
   cursor: pointer;
   position: relative;
   padding: 0;
+  touch-action: manipulation;
 }
 
 .bb-strikethrough-letter {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #000000;
 }
@@ -123,4 +129,30 @@
 .bb-option-row.is-incorrect .bb-option-pill {
   border-color: #EF4444;
   background: #FEF2F2;
+}
+
+@media (max-width: 600px) {
+  .bb-option-row {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .bb-option-pill {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  .bb-option-circle {
+    width: 26px;
+    height: 26px;
+    font-size: 0.85rem;
+  }
+  .bb-option-text {
+    font-size: 0.95rem;
+  }
+  .bb-strikethrough-btn {
+    width: 32px;
+    height: 32px;
+  }
+  .bb-strikethrough-letter {
+    font-size: 0.82rem;
+  }
 }

@@ -359,6 +359,14 @@ export function normalizeQuestion(value: unknown): SatQuestion | null {
       stem = `${rawStimulus}\n${stem}`;
     }
     rawStimulus = null;
+  } else {
+    // If EBRW stem already starts with or includes the raw stimulus, strip it so it doesn't duplicate
+    if (rawStimulus && typeof rawStimulus === "string") {
+      const stimTrim = rawStimulus.trim();
+      if (stem.trim().startsWith(stimTrim)) {
+        stem = stem.trim().slice(stimTrim.length).trim();
+      }
+    }
   }
 
   const createDate = asNumber(value.createDate || baseContent.createDate);
