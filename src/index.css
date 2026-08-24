@@ -70,6 +70,63 @@ body {
 }
 
 /* =========================================================
+   OFFICIAL SAT / BLUEBOOK BULLETED LIST STYLING
+   ========================================================= */
+
+.sat-rich-content ul,
+.bb-option-text ul,
+.stimulus-column ul {
+  list-style: none !important;
+  margin: 0.85rem 0 1rem 0 !important;
+  padding: 0 0 0 1.25rem !important;
+}
+
+.sat-rich-content ol,
+.bb-option-text ol,
+.stimulus-column ol {
+  margin: 0.85rem 0 1rem 0 !important;
+  padding: 0 0 0 1.5rem !important;
+  list-style-type: decimal !important;
+}
+
+.sat-rich-content ul li,
+.bb-option-text ul li,
+.stimulus-column ul li {
+  position: relative !important;
+  padding-left: 1rem !important;
+  margin-bottom: 0.45rem !important;
+  line-height: 1.65 !important;
+  color: inherit !important;
+}
+
+.sat-rich-content ul li:last-child,
+.bb-option-text ul li:last-child,
+.stimulus-column ul li:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Crisp, perfectly centered solid bullet dot */
+.sat-rich-content ul li::before,
+.bb-option-text ul li::before,
+.stimulus-column ul li::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0.62em !important;
+  width: 5.5px !important;
+  height: 5.5px !important;
+  border-radius: 50% !important;
+  background-color: currentColor !important;
+}
+
+.sat-rich-content ol li,
+.bb-option-text ol li,
+.stimulus-column ol li {
+  margin-bottom: 0.45rem !important;
+  line-height: 1.65 !important;
+}
+
+/* =========================================================
    MATH IMAGE & INLINE EQUATION ENGINE
    ========================================================= */
 

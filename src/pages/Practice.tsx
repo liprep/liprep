@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
+  db,
   getQuestions,
   recordQuestionAttempt,
   toggleBookmark,
@@ -69,6 +70,10 @@ function formatTimestampDate(ts?: number): string | null {
 }
 
 export default function Practice() {
+  const { questionId: pathQuestionId } = useParams<{ questionId?: string }>();
+  const [searchParams] = useSearchParams();
+  const targetQuestionId = pathQuestionId || searchParams.get("id") || searchParams.get("q");
+
   const [questions, setQuestions] = useState<SatQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
@@ -104,9 +109,37 @@ export default function Practice() {
     let cancelled = false;
     async function loadData() {
       try {
-        const data = await getQuestions();
+        let loadedQuestions: SatQuestion[] = [];
+
+        if (targetQuestionId) {
+          const directQuestion = await db.questions.get(targetQuestionId.trim());
+          if (directQuestion) {
+            loadedQuestions = [directQuestion];
+          } else {
+            // Case-insensitive fallback check
+            const allQ = await db.questions.toArray();
+            const matched = allQ.find(
+              (q) => q.questionId.toLowerCase() === targetQuestionId.trim().toLowerCase()
+            );
+            if (matched) {
+              loadedQuestions = [matched];
+            }
+          }
+        }
+
+        if (loadedQuestions.length === 0 && !targetQuestionId) {
+          loadedQuestions = await getQuestions();
+        }
+
         if (cancelled) return;
-        setQuestions(data);
+
+        if (loadedQuestions.length === 0) {
+          setLoadState("error");
+          return;
+        }
+
+        setQuestions(loadedQuestions);
+        setCurrentIndex(0);
 
         const bookmarks = await getBookmarkedIds();
         setBookmarkedSet(bookmarks);
@@ -128,7 +161,7 @@ export default function Practice() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [targetQuestionId]);
 
   const currentQ = questions[currentIndex];
 
@@ -172,7 +205,7 @@ export default function Practice() {
     };
   }, [isDraggingCalc, dragOffset, isCalcDocked]);
 
-  // Robust highlighting & de-highlighting engine
+  // Highlighting & de-highlighting engine
   function handleTextHighlight() {
     if (!isHighlightMode) return;
     const selection = window.getSelection();
@@ -188,12 +221,10 @@ export default function Practice() {
       return;
     }
 
-    // Ignore highlight triggers on interactive UI elements
     if (rootEl.closest("button, input, textarea, .bb-question-strap, .rationale-container, .attempt-history-container")) {
       return;
     }
 
-    // 1. Check for existing marks in the selection to de-highlight
     const marksInSelection: HTMLElement[] = [];
     const parentMark = rootEl.closest("mark.sat-highlight") as HTMLElement | null;
 
@@ -209,7 +240,6 @@ export default function Practice() {
       });
     }
 
-    // If selection overlaps with existing highlight, UNHIGHLIGHT (unwrap)
     if (marksInSelection.length > 0) {
       marksInSelection.forEach((mark) => {
         const parent = mark.parentNode;
@@ -225,7 +255,6 @@ export default function Practice() {
       return;
     }
 
-    // 2. Wrap all text nodes across paragraphs/spans without throwing errors
     const treeWalker = document.createTreeWalker(
       container.nodeType === Node.TEXT_NODE ? container.parentNode! : container,
       NodeFilter.SHOW_TEXT,
@@ -338,7 +367,11 @@ export default function Practice() {
   if (loadState === "error" || questions.length === 0) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px" }}>
-        <h2>No questions found for the chosen filters.</h2>
+        <h2>
+          {targetQuestionId
+            ? `Question "${targetQuestionId}" was not found in local storage.`
+            : "No questions found for the chosen filters."}
+        </h2>
         <Link to="/filter" className="bluebook-primary-btn">
           Back to Filters
         </Link>

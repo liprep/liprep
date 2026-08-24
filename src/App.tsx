@@ -12,6 +12,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/practice" element={<Practice />} />
+          <Route path="/practice/:questionId" element={<Practice />} />
           <Route path="/filter" element={<Filter />} />
         </Routes>
       </div>

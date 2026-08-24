@@ -62,7 +62,75 @@ const svgTags = [
   "figcaption",
 ];
 
-export default function RichContent({ content, className = "" }: RichContentProps) {
+/**
+ * Modern browsers have deprecated MathML `<mfenced>`.
+ * This transforms `<mfenced>` into standard `<mrow><mo>(</mo>...<mo>)</mo></mrow>`
+ * so parentheses and separators render properly in all browsers.
+ */
+function transformMfenced(html: string): string {
+  if (!html.includes("<mfenced") && !html.includes("<mfenced/")) {
+    return html;
+  }
+
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(`<body>${html}</body>`, "text/html");
+    const mfencedElements = Array.from(doc.querySelectorAll("mfenced"));
+
+    for (let i = mfencedElements.length - 1; i >= 0; i--) {
+      const el = mfencedElements[i];
+      const open = el.hasAttribute("open") ? el.getAttribute("open") : "(";
+      const close = el.hasAttribute("close") ? el.getAttribute("close") : ")";
+      const separatorsAttr = el.getAttribute("separators");
+
+      let separators: string[] = [","];
+      if (separatorsAttr !== null) {
+        separators = separatorsAttr.replace(/\s+/g, "").split("");
+      }
+
+      const newMrow = doc.createElement("mrow");
+
+      if (open) {
+        const moOpen = doc.createElement("mo");
+        moOpen.textContent = open;
+        newMrow.appendChild(moOpen);
+      }
+
+      const children = Array.from(el.childNodes);
+      children.forEach((child, idx) => {
+        newMrow.appendChild(child);
+        if (idx < children.length - 1 && separators.length > 0) {
+          const sepChar =
+            idx < separators.length
+              ? separators[idx]
+              : separators[separators.length - 1];
+          if (sepChar) {
+            const moSep = doc.createElement("mo");
+            moSep.textContent = sepChar;
+            newMrow.appendChild(moSep);
+          }
+        }
+      });
+
+      if (close) {
+        const moClose = doc.createElement("mo");
+        moClose.textContent = close;
+        newMrow.appendChild(moClose);
+      }
+
+      el.parentNode?.replaceChild(newMrow, el);
+    }
+
+    return doc.body.innerHTML;
+  } catch {
+    return html;
+  }
+}
+
+export default function RichContent({
+  content,
+  className = "",
+}: RichContentProps) {
   const renderedContent = useMemo(() => {
     if (!content) return null;
 
@@ -73,12 +141,18 @@ export default function RichContent({ content, className = "" }: RichContentProp
       /<span aria-hidden="true">_+<\/span><span class="sr-only">blank<\/span>/gi,
       '<span class="sat-blank" aria-label="blank space"></span>'
     );
-    preprocessed = preprocessed.replace(/_{4,}/g, '<span class="sat-blank"></span>');
+    preprocessed = preprocessed.replace(
+      /_{4,}/g,
+      '<span class="sat-blank"></span>'
+    );
 
     // 2. Fix degree symbol spacing quirks
     preprocessed = preprocessed.replace(/&deg;/g, "°");
 
-    // 3. Clean and sanitize HTML, SVG & MathML
+    // 3. Transform deprecated MathML <mfenced> to explicit <mo> fence tags
+    preprocessed = transformMfenced(preprocessed);
+
+    // 4. Clean and sanitize HTML, SVG & MathML
     const cleanHTML = DOMPurify.sanitize(preprocessed, {
       USE_PROFILES: { html: true, svg: true, mathMl: true, svgFilters: true },
       ADD_TAGS: [
@@ -92,6 +166,17 @@ export default function RichContent({ content, className = "" }: RichContentProp
         "td",
         "figure",
         "img",
+        "ul",
+        "ol",
+        "li",
+        "em",
+        "strong",
+        "b",
+        "i",
+        "u",
+        "span",
+        "p",
+        "div",
       ],
       ADD_ATTR: [
         "src",
@@ -149,5 +234,7 @@ export default function RichContent({ content, className = "" }: RichContentProp
 
   if (!renderedContent) return null;
 
-  return <div className={`sat-rich-content ${className}`}>{renderedContent}</div>;
+  return (
+    <div className={`sat-rich-content ${className}`}>{renderedContent}</div>
+  );
 }
