@@ -116,7 +116,6 @@ export default function Practice() {
           if (directQuestion) {
             loadedQuestions = [directQuestion];
           } else {
-            // Case-insensitive fallback check
             const allQ = await db.questions.toArray();
             const matched = allQ.find(
               (q) => q.questionId.toLowerCase() === targetQuestionId.trim().toLowerCase()
@@ -205,7 +204,7 @@ export default function Practice() {
     };
   }, [isDraggingCalc, dragOffset, isCalcDocked]);
 
-  // Highlighting & de-highlighting engine
+  // Precision Highlight & Partial De-highlight Engine
   function handleTextHighlight() {
     if (!isHighlightMode) return;
     const selection = window.getSelection();
@@ -213,50 +212,30 @@ export default function Practice() {
 
     const range = selection.getRangeAt(0);
     const container = range.commonAncestorContainer;
-    const rootEl = container.nodeType === Node.ELEMENT_NODE
-      ? (container as HTMLElement)
-      : container.parentElement;
+    const rootEl =
+      container.nodeType === Node.ELEMENT_NODE
+        ? (container as HTMLElement)
+        : container.parentElement;
 
     if (!rootEl || !rootEl.closest(".stimulus-column, .question-column")) {
       return;
     }
 
-    if (rootEl.closest("button, input, textarea, .bb-question-strap, .rationale-container, .attempt-history-container")) {
+    if (
+      rootEl.closest(
+        "button, input, textarea, .bb-question-strap, .rationale-container, .attempt-history-container"
+      )
+    ) {
       return;
     }
 
-    const marksInSelection: HTMLElement[] = [];
-    const parentMark = rootEl.closest("mark.sat-highlight") as HTMLElement | null;
-
-    if (parentMark) {
-      marksInSelection.push(parentMark);
-    } else {
-      const searchRoot = container.nodeType === Node.TEXT_NODE ? container.parentNode! : container;
-      const allMarks = (searchRoot as HTMLElement).querySelectorAll?.("mark.sat-highlight") || [];
-      allMarks.forEach((m) => {
-        if (range.intersectsNode(m)) {
-          marksInSelection.push(m as HTMLElement);
-        }
-      });
-    }
-
-    if (marksInSelection.length > 0) {
-      marksInSelection.forEach((mark) => {
-        const parent = mark.parentNode;
-        if (parent) {
-          while (mark.firstChild) {
-            parent.insertBefore(mark.firstChild, mark);
-          }
-          parent.removeChild(mark);
-          parent.normalize();
-        }
-      });
-      selection.removeAllRanges();
-      return;
-    }
+    // Identify lowest common container within the allowed question column or stimulus pane
+    const searchScope = (container.nodeType === Node.TEXT_NODE ? container.parentNode : container) as HTMLElement;
+    const containerPane = rootEl.closest(".stimulus-column, .question-column") as HTMLElement;
+    const effectiveContainer = searchScope || containerPane;
 
     const treeWalker = document.createTreeWalker(
-      container.nodeType === Node.TEXT_NODE ? container.parentNode! : container,
+      effectiveContainer,
       NodeFilter.SHOW_TEXT,
       {
         acceptNode: (node) => {
@@ -274,31 +253,96 @@ export default function Practice() {
 
     if (textNodes.length === 0) return;
 
-    textNodes.forEach((node) => {
-      const isStart = node === range.startContainer;
-      const isEnd = node === range.endContainer;
-
-      const start = isStart ? range.startOffset : 0;
-      const end = isEnd ? range.endOffset : (node.nodeValue?.length || 0);
-
-      if (start >= end) return;
-
-      let targetNode = node;
-      if (isEnd && end < (node.nodeValue?.length || 0)) {
-        targetNode.splitText(end);
-      }
-      if (isStart && start > 0) {
-        targetNode = targetNode.splitText(start);
-      }
-
-      if (targetNode.nodeValue && targetNode.nodeValue.length > 0) {
-        const mark = document.createElement("mark");
-        mark.className = "sat-highlight";
-        targetNode.parentNode?.insertBefore(mark, targetNode);
-        mark.appendChild(targetNode);
-      }
+    // Check if the selected selection consists entirely of existing highlighted content
+    const isEntirelyHighlighted = textNodes.every((node) => {
+      return Boolean(node.parentElement?.closest("mark.sat-highlight"));
     });
 
+    if (isEntirelyHighlighted) {
+      // DE-HIGHLIGHT ONLY SELECTED SUB-RANGE: Split <mark> nodes and extract only selected text portion
+      textNodes.forEach((node) => {
+        const isStart = node === range.startContainer;
+        const isEnd = node === range.endContainer;
+
+        const start = isStart ? range.startOffset : 0;
+        const end = isEnd ? range.endOffset : (node.nodeValue?.length || 0);
+
+        if (start >= end) return;
+
+        let selectedTextNode = node;
+        if (isEnd && end < (node.nodeValue?.length || 0)) {
+          selectedTextNode.splitText(end);
+        }
+        if (isStart && start > 0) {
+          selectedTextNode = selectedTextNode.splitText(start);
+        }
+
+        const markParent = selectedTextNode.parentElement?.closest("mark.sat-highlight");
+        if (markParent && markParent.parentNode) {
+          const parent = markParent.parentNode;
+          // Unpack only selectedTextNode out of mark container
+          const markContainerOfNode = selectedTextNode.parentElement as HTMLElement;
+          if (markContainerOfNode && markContainerOfNode.tagName.toLowerCase() === "mark") {
+            const children = Array.from(markContainerOfNode.childNodes);
+            const index = children.indexOf(selectedTextNode);
+
+            if (index > 0) {
+              const prevMark = document.createElement("mark");
+              prevMark.className = "sat-highlight";
+              for (let i = 0; i < index; i++) {
+                prevMark.appendChild(children[i]);
+              }
+              parent.insertBefore(prevMark, markContainerOfNode);
+            }
+
+            parent.insertBefore(selectedTextNode, markContainerOfNode);
+
+            if (index < children.length - 1) {
+              const nextMark = document.createElement("mark");
+              nextMark.className = "sat-highlight";
+              for (let i = index + 1; i < children.length; i++) {
+                nextMark.appendChild(children[i]);
+              }
+              parent.insertBefore(nextMark, markContainerOfNode);
+            }
+
+            parent.removeChild(markContainerOfNode);
+            parent.normalize();
+          }
+        }
+      });
+    } else {
+      // HIGHLIGHT SELECTED RANGE: Wrap non-highlighted sub-nodes into <mark>
+      textNodes.forEach((node) => {
+        const isStart = node === range.startContainer;
+        const isEnd = node === range.endContainer;
+
+        const start = isStart ? range.startOffset : 0;
+        const end = isEnd ? range.endOffset : (node.nodeValue?.length || 0);
+
+        if (start >= end) return;
+
+        let targetNode = node;
+        if (isEnd && end < (node.nodeValue?.length || 0)) {
+          targetNode.splitText(end);
+        }
+        if (isStart && start > 0) {
+          targetNode = targetNode.splitText(start);
+        }
+
+        // Avoid double-wrapping if already inside a mark
+        if (targetNode.nodeValue && targetNode.nodeValue.length > 0) {
+          if (!targetNode.parentElement?.closest("mark.sat-highlight")) {
+            const mark = document.createElement("mark");
+            mark.className = "sat-highlight";
+            targetNode.parentNode?.insertBefore(mark, targetNode);
+            mark.appendChild(targetNode);
+          }
+        }
+      });
+    }
+
+    effectiveContainer.normalize();
     selection.removeAllRanges();
   }
 
@@ -577,6 +621,13 @@ export default function Practice() {
               )}
             </div>
           </div>
+
+          {/* Mobile EBRW Stimulus (Passage) placed right under the question strap */}
+          {hasStimulus && (
+            <div className="mobile-stimulus">
+              <RichContent content={currentQ.stimulus} />
+            </div>
+          )}
 
           {isMathModule && currentQ.stimulus && (
             <RichContent content={currentQ.stimulus} className="stem-container" />

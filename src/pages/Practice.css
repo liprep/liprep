@@ -181,6 +181,10 @@ mark.sat-highlight {
   line-height: 1.7;
 }
 
+.mobile-stimulus {
+  display: none;
+}
+
 .question-column {
   padding: 36px 44px;
   overflow-y: auto;
@@ -815,6 +819,17 @@ mark.sat-highlight {
   }
   .bluebook-viewport {
     grid-template-columns: 1fr;
+  }
+  .stimulus-column:not(.docked-desmos-pane) {
+    display: none;
+  }
+  .mobile-stimulus {
+    display: block;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1.5px solid #E2E8F0;
+    font-size: 1.05rem;
+    line-height: 1.7;
   }
   .stimulus-column {
     border-right: none;
