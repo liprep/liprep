@@ -9,6 +9,17 @@
   position: relative;
 }
 
+/* Text Highlighting Engine */
+mark.sat-highlight {
+  background-color: #FFF3A3;
+  color: inherit;
+  padding: 0;
+  margin: 0;
+  border-radius: 2px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
 /* Header */
 .bluebook-top-bar {
   height: 56px;

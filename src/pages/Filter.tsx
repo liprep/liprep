@@ -54,12 +54,13 @@ export default function Filter() {
     return "all";
   });
 
+  // Always active by default unless explicitly toggled off
   const [excludeBluebook, setExcludeBluebook] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem("liprep_saved_exclude_bb");
       if (saved !== null) return JSON.parse(saved);
     } catch {}
-    return false;
+    return true;
   });
 
   const [selected, setSelected] = useState<Set<string>>(() => {

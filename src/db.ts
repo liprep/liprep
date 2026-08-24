@@ -215,7 +215,6 @@ function normalizeDisclosedQuestion(value: JsonRecord, contentObj: JsonRecord): 
   let rawStimulus: string | null = null;
 
   if (module === "math") {
-    // In Math, combine body and prompt into a single stem so it is NEVER split-screen
     if (bodyText && promptText && bodyText !== promptText) {
       stem = `${bodyText}\n${promptText}`;
     } else {
@@ -223,7 +222,6 @@ function normalizeDisclosedQuestion(value: JsonRecord, contentObj: JsonRecord): 
     }
     rawStimulus = null;
   } else {
-    // In Reading, bodyText is the stimulus passage and promptText is the question
     if (bodyText && promptText && bodyText !== promptText) {
       rawStimulus = bodyText;
       stem = promptText;
@@ -278,9 +276,13 @@ function normalizeDisclosedQuestion(value: JsonRecord, contentObj: JsonRecord): 
   else if (difficulty === "M") difficulty = "Medium";
   else if (difficulty === "H") difficulty = "Hard";
 
+  const createDate = asNumber(value.createDate || contentObj.createDate || data.createDate);
+  const updateDate = asNumber(value.updateDate || contentObj.updateDate || data.updateDate || createDate);
+
   return {
     questionId,
-    updateDate: asNumber(value.updateDate || value.createDate),
+    createDate: createDate > 0 ? createDate : undefined,
+    updateDate: updateDate > 0 ? updateDate : undefined,
     primary_class_cd: asString(value.primary_class_cd || contentObj.primary_class_cd || data.primary_class_cd),
     skill_cd: asString(value.skill_cd || contentObj.skill_cd || data.skill_cd),
     score_band_range_cd: scoreBand,
@@ -359,9 +361,13 @@ export function normalizeQuestion(value: unknown): SatQuestion | null {
     rawStimulus = null;
   }
 
+  const createDate = asNumber(value.createDate || baseContent.createDate);
+  const updateDate = asNumber(value.updateDate || baseContent.updateDate || createDate);
+
   return {
     questionId,
-    updateDate: asNumber(value.updateDate || value.createDate),
+    createDate: createDate > 0 ? createDate : undefined,
+    updateDate: updateDate > 0 ? updateDate : undefined,
     primary_class_cd: asString(value.primary_class_cd || baseContent.primary_class_cd),
     skill_cd: asString(value.skill_cd || baseContent.skill_cd),
     score_band_range_cd: scoreBand,
@@ -468,7 +474,7 @@ export async function getQuestions(customFilter?: FilterState): Promise<SatQuest
     subtopics: [],
     difficultyLevels: [],
     solvedStatus: "all",
-    excludeBluebook: false,
+    excludeBluebook: true,
   });
 
   const selectedTopics = filters.subtopics ?? [];
@@ -544,7 +550,7 @@ export async function getActivityHeatmapData(): Promise<Record<string, number>> 
 export async function getNumberRemainingPerTopic(
   difficulty: number[],
   solvedStatus: string,
-  excludeBluebook = false,
+  excludeBluebook = true,
 ): Promise<Record<string, number>> {
   const result: Record<string, number> = {};
   const allAttempts = await progressDb.attempts.toArray();

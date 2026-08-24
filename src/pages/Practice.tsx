@@ -58,6 +58,16 @@ function formatAttemptDate(timestamp: number) {
   });
 }
 
+function formatTimestampDate(ts?: number): string | null {
+  if (!ts || !Number.isFinite(ts) || ts <= 0) return null;
+  const d = new Date(ts);
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 export default function Practice() {
   const [questions, setQuestions] = useState<SatQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -87,7 +97,8 @@ export default function Practice() {
   const [isHighlightMode, setIsHighlightMode] = useState(false);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
 
-  const questionStartTimeRef = useRef<number>(Date.now());
+  const timerSecondsRef = useRef<number>(0);
+  timerSecondsRef.current = timerSeconds;
 
   useEffect(() => {
     let cancelled = false;
@@ -123,7 +134,7 @@ export default function Practice() {
 
   useEffect(() => {
     setTimerSeconds(0);
-    questionStartTimeRef.current = Date.now();
+    setIsTimerRunning(true);
   }, [currentIndex]);
 
   useEffect(() => {
@@ -161,24 +172,105 @@ export default function Practice() {
     };
   }, [isDraggingCalc, dragOffset, isCalcDocked]);
 
+  // Robust highlighting & de-highlighting engine
   function handleTextHighlight() {
     if (!isHighlightMode) return;
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return;
 
     const range = selection.getRangeAt(0);
-    const span = document.createElement("mark");
-    span.style.backgroundColor = "#FFF3A3";
-    span.style.color = "inherit";
-    span.style.padding = "1px 2px";
-    span.style.borderRadius = "2px";
+    const container = range.commonAncestorContainer;
+    const rootEl = container.nodeType === Node.ELEMENT_NODE
+      ? (container as HTMLElement)
+      : container.parentElement;
 
-    try {
-      range.surroundContents(span);
-      selection.removeAllRanges();
-    } catch {
-      // Ignore
+    if (!rootEl || !rootEl.closest(".stimulus-column, .question-column")) {
+      return;
     }
+
+    // Ignore highlight triggers on interactive UI elements
+    if (rootEl.closest("button, input, textarea, .bb-question-strap, .rationale-container, .attempt-history-container")) {
+      return;
+    }
+
+    // 1. Check for existing marks in the selection to de-highlight
+    const marksInSelection: HTMLElement[] = [];
+    const parentMark = rootEl.closest("mark.sat-highlight") as HTMLElement | null;
+
+    if (parentMark) {
+      marksInSelection.push(parentMark);
+    } else {
+      const searchRoot = container.nodeType === Node.TEXT_NODE ? container.parentNode! : container;
+      const allMarks = (searchRoot as HTMLElement).querySelectorAll?.("mark.sat-highlight") || [];
+      allMarks.forEach((m) => {
+        if (range.intersectsNode(m)) {
+          marksInSelection.push(m as HTMLElement);
+        }
+      });
+    }
+
+    // If selection overlaps with existing highlight, UNHIGHLIGHT (unwrap)
+    if (marksInSelection.length > 0) {
+      marksInSelection.forEach((mark) => {
+        const parent = mark.parentNode;
+        if (parent) {
+          while (mark.firstChild) {
+            parent.insertBefore(mark.firstChild, mark);
+          }
+          parent.removeChild(mark);
+          parent.normalize();
+        }
+      });
+      selection.removeAllRanges();
+      return;
+    }
+
+    // 2. Wrap all text nodes across paragraphs/spans without throwing errors
+    const treeWalker = document.createTreeWalker(
+      container.nodeType === Node.TEXT_NODE ? container.parentNode! : container,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: (node) => {
+          if (!range.intersectsNode(node)) return NodeFilter.FILTER_REJECT;
+          if (!node.nodeValue || node.nodeValue.length === 0) return NodeFilter.FILTER_SKIP;
+          return NodeFilter.FILTER_ACCEPT;
+        },
+      }
+    );
+
+    const textNodes: Text[] = [];
+    while (treeWalker.nextNode()) {
+      textNodes.push(treeWalker.currentNode as Text);
+    }
+
+    if (textNodes.length === 0) return;
+
+    textNodes.forEach((node) => {
+      const isStart = node === range.startContainer;
+      const isEnd = node === range.endContainer;
+
+      const start = isStart ? range.startOffset : 0;
+      const end = isEnd ? range.endOffset : (node.nodeValue?.length || 0);
+
+      if (start >= end) return;
+
+      let targetNode = node;
+      if (isEnd && end < (node.nodeValue?.length || 0)) {
+        targetNode.splitText(end);
+      }
+      if (isStart && start > 0) {
+        targetNode = targetNode.splitText(start);
+      }
+
+      if (targetNode.nodeValue && targetNode.nodeValue.length > 0) {
+        const mark = document.createElement("mark");
+        mark.className = "sat-highlight";
+        targetNode.parentNode?.insertBefore(mark, targetNode);
+        mark.appendChild(targetNode);
+      }
+    });
+
+    selection.removeAllRanges();
   }
 
   const currentAnswer = userAnswers[currentIndex] || "";
@@ -188,7 +280,6 @@ export default function Practice() {
   const isCorrect = isSubmitted && currentQ ? checkIsCorrect(currentQ, currentAnswer) : false;
   const isMathModule = currentQ?.module === "math";
 
-  // Math questions are NEVER split into a stimulus pane; Reading & Writing uses stimulus if available
   const hasStimulus = !isMathModule && Boolean(currentQ?.stimulus);
 
   const handleNavigate = useCallback((index: number) => {
@@ -198,7 +289,7 @@ export default function Practice() {
 
   const handleSubmit = useCallback(async () => {
     if (!currentAnswer || isSubmitted || !currentQ) return;
-    const timeSpentSec = (Date.now() - questionStartTimeRef.current) / 1000;
+    const timeSpentSec = Math.max(1, timerSecondsRef.current);
     const correct = checkIsCorrect(currentQ, currentAnswer);
 
     setSubmittedStatus((prev) => ({ ...prev, [currentIndex]: true }));
@@ -290,6 +381,16 @@ export default function Practice() {
       setUserAnswers((prev) => ({ ...prev, [currentIndex]: "" }));
     }
   }
+
+  const createdFormatted = formatTimestampDate(currentQ?.createDate);
+  const updatedFormatted = formatTimestampDate(currentQ?.updateDate);
+  const showUpdated =
+    updatedFormatted &&
+    (!createdFormatted ||
+      (currentQ?.createDate &&
+        currentQ?.updateDate &&
+        Math.abs(currentQ.createDate - currentQ.updateDate) > 60000 &&
+        createdFormatted !== updatedFormatted));
 
   return (
     <div className="bluebook-app-container">
@@ -444,7 +545,6 @@ export default function Practice() {
             </div>
           </div>
 
-          {/* If there's any fallback math stimulus, render it directly above stem */}
           {isMathModule && currentQ.stimulus && (
             <RichContent content={currentQ.stimulus} className="stem-container" />
           )}
@@ -758,6 +858,12 @@ export default function Practice() {
                 <div><strong>Score Band:</strong> {currentQ.score_band_range_cd} / 7</div>
                 <div><strong>Difficulty:</strong> {difficultyLabelMap[currentQ.difficulty || ""] || currentQ.difficulty}</div>
                 <div><strong>Item Type:</strong> {currentQ.type === "mcq" ? "Multiple Choice" : "Student-Produced Response"}</div>
+                {createdFormatted && (
+                  <div><strong>Created:</strong> {createdFormatted}</div>
+                )}
+                {showUpdated && (
+                  <div><strong>Updated:</strong> {updatedFormatted}</div>
+                )}
               </div>
             </div>
           </div>,

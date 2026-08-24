@@ -75,6 +75,7 @@
   margin-left: 10px;
 }
 
+/* Default Desktop 3-Column Layout */
 .filter-main-layout {
   display: grid;
   grid-template-columns: 280px 1fr 280px;
@@ -177,22 +178,70 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.08);
 }
 
+/* Checkbox Toggle with Smooth Pop Animation */
 .bluebook-exclude-toggle {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-navy);
   cursor: pointer;
-  padding: 8px 10px;
+  padding: 9px 12px;
   background: #F8FAFC;
-  border-radius: 8px;
-  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  border: 1.5px solid #CBD5E1;
+  user-select: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.bluebook-exclude-toggle input {
-  margin-top: 2px;
+.bluebook-exclude-toggle:hover {
+  background: #F1F5F9;
+  border-color: var(--color-navy);
+}
+
+.bluebook-exclude-toggle input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+  border: 2px solid var(--color-navy);
+  border-radius: 6px;
+  background: #FFFFFF;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  transition: background-color 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.bluebook-exclude-toggle input[type="checkbox"]:checked {
+  background-color: var(--color-navy);
+  border-color: var(--color-navy);
+  animation: checkboxPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.bluebook-exclude-toggle input[type="checkbox"]::after {
+  content: "";
+  display: block;
+  width: 5px;
+  height: 9px;
+  border: solid #FFFFFF;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg) scale(0);
+  opacity: 0;
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.12s ease;
+  margin-bottom: 2px;
+}
+
+.bluebook-exclude-toggle input[type="checkbox"]:checked::after {
+  transform: rotate(45deg) scale(1);
+  opacity: 1;
 }
 
 /* Difficulty Band */
@@ -230,11 +279,11 @@
   background: #FFFFFF;
   cursor: pointer;
   padding: 0;
-  transition: transform 0.1s ease;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease;
 }
 
 .diff-dot-button.is-active {
-  transform: scale(1.15);
+  transform: scale(1.18);
 }
 
 /* Fullscreen Blurred Modal Viewport */
@@ -461,7 +510,34 @@
   color: #64748B;
 }
 
-@media (max-width: 960px) {
+/* Responsive Overhaul for ~4:3 Screen / Medium Aspect Ratios */
+@media (max-width: 1180px) and (min-width: 769px) {
+  .filter-main-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "controls calendar"
+      "modules modules";
+    gap: 20px;
+  }
+  .filter-controls-pane {
+    grid-area: controls;
+    order: 1;
+    width: 100%;
+  }
+  .calendar-pane {
+    grid-area: calendar;
+    order: 2;
+    width: 100%;
+  }
+  .modules-selection-pane {
+    grid-area: modules;
+    order: 3;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
   .filter-main-layout {
     display: flex;
     flex-direction: column;

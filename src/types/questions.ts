@@ -9,6 +9,7 @@ export interface AnswerOption {
 
 export interface SatQuestion {
   questionId: string;
+  createDate?: number;
   updateDate?: number;
   primary_class_cd?: string;
   skill_cd: string;
