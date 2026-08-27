@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import TopicSelection from "@/components/TopicSelection";
 import MonthCalendar from "@/components/MonthCalendar";
@@ -54,7 +54,6 @@ export default function Filter() {
     return "all";
   });
 
-  // Always active by default unless explicitly toggled off
   const [excludeBluebook, setExcludeBluebook] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem("liprep_saved_exclude_bb");
@@ -102,10 +101,16 @@ export default function Filter() {
     };
   }, [isStatsModalOpen]);
 
-  useEffect(() => {
-    getActivityHeatmapData().then(setActivityData);
-    getUserStatistics().then(setStats);
+  const refreshUserData = useCallback(async () => {
+    const freshStats = await getUserStatistics();
+    const freshHeatmap = await getActivityHeatmapData();
+    setStats(freshStats);
+    setActivityData(freshHeatmap);
   }, []);
+
+  useEffect(() => {
+    refreshUserData();
+  }, [refreshUserData]);
 
   function toggleDifficultyTier(numbers: number[]) {
     const next = new Set(difficulty);
@@ -158,7 +163,6 @@ export default function Filter() {
 
   return (
     <div className="filter-page animate-fade-in">
-      {/* Contained non-overflowing viewport for blobs */}
       <div className="blobs-isolated-viewport" aria-hidden="true">
         <img
           src="/bg-blob-orange.svg"
@@ -200,7 +204,7 @@ export default function Filter() {
               <line x1="12" y1="20" x2="12" y2="4" />
               <line x1="6" y1="20" x2="6" y2="14" />
             </svg>
-            <span>Analytics & Intelligence</span>
+            <span>Analytics & Progress</span>
           </button>
         </div>
       </header>
@@ -396,11 +400,9 @@ export default function Filter() {
           onClose={() => setIsStatsModalOpen(false)}
           onReset={async () => {
             await clearAllUserData();
-            const fresh = await getUserStatistics();
-            const freshHeatmap = await getActivityHeatmapData();
-            setStats(fresh);
-            setActivityData(freshHeatmap);
+            await refreshUserData();
           }}
+          onRefreshData={refreshUserData}
           onDrillSkill={handleDrillSkill}
         />
       )}

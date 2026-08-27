@@ -14,8 +14,6 @@
   height: 100dvh;
   z-index: 99999;
   background: rgba(16, 55, 92, 0.45);
-  backdrop-filter: blur(14px) saturate(160%);
-  -webkit-backdrop-filter: blur(14px) saturate(160%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -28,7 +26,7 @@
   background: #FFFFFF;
   border: 3px solid var(--color-navy);
   border-radius: var(--radius-card);
-  box-shadow: 0 24px 64px rgba(16, 55, 92, 0.28), 0 8px 0 var(--color-navy);
+  box-shadow: 0 16px 40px rgba(16, 55, 92, 0.25), 0 8px 0 var(--color-navy);
   max-width: 1180px;
   width: 100%;
   height: 92vh;
@@ -130,7 +128,7 @@
 
 .analytics-tab-btn:hover:not(.active) {
   color: var(--color-navy);
-  background: rgba(255, 255, 255, 0.6);
+  background: #E2E8F0;
 }
 
 .analytics-tab-btn.active {
@@ -167,6 +165,27 @@
 .analytics-close-btn:active {
   transform: translateY(2px);
   box-shadow: none;
+}
+
+/* Feedback Toast */
+.action-feedback-toast {
+  padding: 10px 20px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-align: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.action-feedback-toast.success {
+  background: #DCFCE7;
+  color: #166534;
+  border-bottom: 1.5px solid #86EFAC;
+}
+
+.action-feedback-toast.error {
+  background: #FEE2E2;
+  color: #991B1B;
+  border-bottom: 1.5px solid #FCA5A5;
 }
 
 /* Scroll Body */
@@ -426,7 +445,6 @@
   stroke-linecap: round;
 }
 
-/* Quad Matrix */
 .quad-point-node {
   cursor: pointer;
   transition: stroke-width 0.12s ease, stroke 0.12s ease, filter 0.12s ease;
@@ -442,34 +460,6 @@
   pointer-events: none;
   filter: drop-shadow(0 4px 8px rgba(16, 55, 92, 0.2));
   font-family: inherit;
-}
-
-/* Domain Ranked Table */
-.domain-ranked-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.domain-ranked-table th {
-  text-align: left;
-  font-size: 0.74rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  color: #64748B;
-  padding: 10px 14px;
-  border-bottom: 2px solid #E2E8F0;
-}
-
-.domain-ranked-table td {
-  padding: 12px 14px;
-  font-size: 0.88rem;
-  color: var(--color-navy);
-  border-bottom: 1px solid #F1F5F9;
-  font-weight: 600;
-}
-
-.domain-ranked-table tr:last-child td {
-  border-bottom: none;
 }
 
 .domain-progress-track {
@@ -580,10 +570,7 @@
   transform: translateY(-1px);
 }
 
-/* ==========================================================================
-   Modern Domain & Skill Hierarchy Overhaul
-   ========================================================================== */
-
+/* Domain Hierarchy */
 .hierarchy-filter-toolbar {
   display: flex;
   align-items: center;
@@ -876,11 +863,14 @@
   border-radius: 3px;
 }
 
-/* Footer */
+/* ==========================================================================
+   Footer Bar Actions
+   ========================================================================== */
+
 .analytics-footer-bar {
   background: #FFFFFF;
   border-top: 2px solid var(--color-border);
-  padding: 14px 28px;
+  padding: 14px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -899,25 +889,128 @@
   color: var(--color-navy);
 }
 
-.btn-danger-link {
-  background: none;
-  border: none;
-  color: #DC2626;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  text-decoration: underline;
-  padding: 6px 8px;
-  touch-action: manipulation;
+.footer-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.btn-danger-link:hover {
-  color: #991B1B;
+.footer-action-btn {
+  padding: 8px 16px;
+  font-size: 0.84rem;
+  min-height: 38px;
+}
+
+.btn-export-positive {
+  background-color: #F0FDF4;
+  color: #166534;
+  border-color: #166534;
+  box-shadow: 0 3px 0 #166534;
+}
+
+.btn-export-positive:hover:not(:disabled) {
+  background-color: #DCFCE7;
+}
+
+.btn-import-positive {
+  background-color: #EEF2FF;
+  color: #4338CA;
+  border-color: #4338CA;
+  box-shadow: 0 3px 0 #4338CA;
+  cursor: pointer;
+}
+
+.btn-import-positive:hover:not(:disabled) {
+  background-color: #E0E7FF;
+}
+
+.btn-reset-danger {
+  background-color: #FEF2F2;
+  color: #DC2626;
+  border-color: #DC2626;
+  box-shadow: 0 3px 0 #DC2626;
+}
+
+.btn-reset-danger:hover:not(:disabled) {
+  background-color: #FEE2E2;
 }
 
 /* ==========================================================================
-   Mobile & Tablet Full-Screen Diagnostic Mode
+   Confirmation Modal with Screen Shake
    ========================================================================== */
+
+.reset-sure-modal-card {
+  background: #FFFFFF;
+  border: 3px solid var(--color-navy);
+  border-radius: var(--radius-card);
+  box-shadow: 0 16px 40px rgba(16, 55, 92, 0.25), 0 8px 0 var(--color-navy);
+  max-width: 480px;
+  width: 100%;
+  padding: 32px 28px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.reset-sure-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #DC2626;
+  margin: 0 0 14px 0;
+  letter-spacing: -0.3px;
+}
+
+.reset-sure-desc {
+  font-size: 0.96rem;
+  color: #1E293B;
+  line-height: 1.55;
+  margin: 0 0 24px 0;
+  font-weight: 600;
+}
+
+.reset-sure-btn-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.btn-take-back-orange {
+  background-color: #FF9955;
+  color: var(--color-navy);
+  border-color: var(--color-navy);
+  box-shadow: 0 4px 0 var(--color-navy);
+}
+
+.btn-take-back-orange:hover:not(:disabled) {
+  background-color: #FFAE78;
+}
+
+.btn-reset-nuke {
+  background-color: #DC2626;
+  color: #FFFFFF;
+  border-color: #991B1B;
+  box-shadow: 0 4px 0 #991B1B;
+}
+
+.btn-reset-nuke:hover:not(:disabled) {
+  background-color: #B91C1C;
+}
+
+@keyframes cameraShake {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  15% { transform: translate(-8px, -4px) rotate(-1.5deg); }
+  30% { transform: translate(7px, 5px) rotate(1.5deg); }
+  45% { transform: translate(-6px, 3px) rotate(-1deg); }
+  60% { transform: translate(5px, -3px) rotate(1deg); }
+  75% { transform: translate(-3px, 2px) rotate(-0.5deg); }
+  90% { transform: translate(2px, -1px) rotate(0.5deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+.animate-shake {
+  animation: cameraShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
 @media (max-width: 960px) {
   .executive-kpi-banner {
     grid-template-columns: repeat(2, 1fr);
@@ -942,8 +1035,6 @@
 @media (max-width: 768px) {
   .analytics-overlay {
     padding: 0;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
     background: #FFFFFF;
   }
 
@@ -1020,85 +1111,6 @@
     padding: 16px 14px;
   }
 
-  .chart-panel-header {
-    margin-bottom: 14px;
-    padding-bottom: 10px;
-  }
-
-  .chart-title-cluster h3 {
-    font-size: 0.98rem;
-  }
-
-  .hierarchy-filter-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-
-  .hierarchy-module-filter-pills {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .hierarchy-filter-pill-btn {
-    flex: 1;
-    text-align: center;
-    padding: 6px 8px;
-    font-size: 0.76rem;
-  }
-
-  .hierarchy-search-box {
-    max-width: 100%;
-    min-width: 0;
-    padding: 7px 10px;
-  }
-
-  .domain-modern-header {
-    padding: 12px 14px;
-  }
-
-  .domain-modern-title {
-    font-size: 0.95rem;
-  }
-
-  .domain-header-telemetry {
-    width: 100%;
-    justify-content: space-between;
-    gap: 6px;
-  }
-
-  .domain-header-metric-pill {
-    flex: 1;
-    justify-content: center;
-    padding: 4px 6px;
-    font-size: 0.74rem;
-  }
-
-  .skill-modern-row {
-    padding: 12px 14px;
-  }
-
-  .skill-info-column {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .action-priority-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 12px 14px;
-  }
-
-  .action-item-left {
-    width: 100%;
-  }
-
-  .action-item-right {
-    width: 100%;
-    justify-content: space-between;
-  }
-
   .analytics-footer-bar {
     padding: 12px 16px;
     flex-direction: column;
@@ -1106,8 +1118,17 @@
     text-align: center;
   }
 
-  .btn-danger-link {
-    padding: 8px;
+  .footer-actions-group {
     width: 100%;
+    justify-content: stretch;
+  }
+
+  .footer-action-btn {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .reset-sure-btn-row {
+    flex-direction: column;
   }
 }

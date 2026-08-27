@@ -31,7 +31,6 @@
   background-color: var(--color-bg);
 }
 
-/* Base resets without breaking MathML */
 *, ::before, ::after {
   box-sizing: border-box;
 }
@@ -105,7 +104,6 @@ body {
   margin-bottom: 0 !important;
 }
 
-/* Crisp, perfectly centered solid bullet dot */
 .sat-rich-content ul li::before,
 .bb-option-text ul li::before,
 .stimulus-column ul li::before {
@@ -127,10 +125,29 @@ body {
 }
 
 /* =========================================================
+   CLEAN & ELEGANT QUOTED TEXT SIDEBAR ENGINE
+   ========================================================= */
+
+.sat-rich-content p[style*="padding-left"],
+.sat-rich-content blockquote,
+.stimulus-column p[style*="padding-left"],
+.mobile-stimulus p[style*="padding-left"] {
+  border-left: 3.5px solid var(--color-indigo) !important;
+  padding-left: 1.15rem !important;
+  margin: 1rem 0 !important;
+  background: rgba(82, 95, 225, 0.045);
+  border-radius: 0 10px 10px 0;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  padding-right: 12px !important;
+  font-style: normal;
+  position: relative;
+}
+
+/* =========================================================
    MATH IMAGE & INLINE EQUATION ENGINE
    ========================================================= */
 
-/* Override Tailwind's block image reset inside rich content and choices */
 .sat-rich-content img,
 .bb-option-text img {
   display: inline-block;

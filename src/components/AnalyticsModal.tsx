@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import type { UserStats } from "@/types/questions";
 import { topicTree, topicCodes, domainMap } from "./TopicTree";
+import { exportUserData, importUserData } from "@/db";
 import "./AnalyticsModal.css";
 
 const Icons = {
@@ -70,12 +71,33 @@ const Icons = {
       <polyline points="20 6 9 17 4 12" />
     </svg>
   ),
+  Download: () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+  ),
+  Upload: () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
+    </svg>
+  ),
+  Trash: () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+  ),
 };
 
 interface AnalyticsModalProps {
   stats: UserStats;
   onClose: () => void;
   onReset: () => Promise<void>;
+  onRefreshData?: () => Promise<void>;
   onDrillSkill?: (skillCode: string) => void;
 }
 
@@ -85,6 +107,7 @@ export default function AnalyticsModal({
   stats,
   onClose,
   onReset,
+  onRefreshData,
   onDrillSkill,
 }: AnalyticsModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>("executive");
@@ -100,6 +123,15 @@ export default function AnalyticsModal({
     x: number;
     y: number;
   } | null>(null);
+
+  // Manual multi-click progression state
+  const [resetClickCount, setResetClickCount] = useState<number>(0);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+
+  // Import / Export Feedback States
+  const [actionFeedback, setActionFeedback] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const radarDomains: Array<{ code: string; label: string; module: "reading" | "math" }> = [
     { code: "CAS", label: "Craft & Struct", module: "reading" },
@@ -156,7 +188,6 @@ export default function AnalyticsModal({
     return `${mins}m ${secs}s`;
   };
 
-  // Structured breakdown of full domain hierarchy with child skills
   const domainHierarchy = useMemo(() => {
     const list: Array<{
       groupName: string;
@@ -165,7 +196,6 @@ export default function AnalyticsModal({
       skills: Array<{ name: string; code: string }>;
     }> = [];
 
-    // Reading domains
     Object.entries(topicTree.reading).forEach(([groupName, childTopicNames]) => {
       const domainCode = Object.keys(domainMap).find((k) => domainMap[k] === groupName) || "CAS";
       list.push({
@@ -176,7 +206,6 @@ export default function AnalyticsModal({
       });
     });
 
-    // Math domains
     Object.entries(topicTree.math).forEach(([groupName, childTopicNames]) => {
       const domainCode = Object.keys(domainMap).find((k) => domainMap[k] === groupName) || "H";
       list.push({
@@ -209,6 +238,43 @@ export default function AnalyticsModal({
       .filter((dom): dom is NonNullable<typeof dom> => dom !== null);
   }, [domainHierarchy, hierarchyModuleFilter, hierarchySearchQuery]);
 
+  async function handleExport() {
+    try {
+      const fileName = await exportUserData();
+      setActionFeedback({ msg: `Successfully exported ${fileName}.`, type: "success" });
+      setTimeout(() => setActionFeedback(null), 3000);
+    } catch (err: unknown) {
+      setActionFeedback({ msg: err instanceof Error ? err.message : "Export failed.", type: "error" });
+      setTimeout(() => setActionFeedback(null), 3000);
+    }
+  }
+
+  async function handleImportFile(file: File) {
+    try {
+      const res = await importUserData(file);
+      if (onRefreshData) await onRefreshData();
+      setActionFeedback({
+        msg: `Imported ${res.attemptsCount} attempts & ${res.bookmarksCount} bookmarks.`,
+        type: "success",
+      });
+      setTimeout(() => setActionFeedback(null), 3500);
+    } catch (err: unknown) {
+      setActionFeedback({ msg: err instanceof Error ? err.message : "Import failed.", type: "error" });
+      setTimeout(() => setActionFeedback(null), 3500);
+    }
+  }
+
+  function handleResetButtonClick() {
+    if (resetClickCount === 0) {
+      setResetClickCount(1);
+    } else if (resetClickCount === 1) {
+      setResetClickCount(2);
+    } else if (resetClickCount === 2) {
+      setResetClickCount(0);
+      setIsResetConfirmOpen(true);
+    }
+  }
+
   return createPortal(
     <div className="analytics-overlay animate-fade-in" onClick={onClose}>
       <div className="analytics-modal-shell animate-fade-in" onClick={(e) => e.stopPropagation()}>
@@ -223,9 +289,9 @@ export default function AnalyticsModal({
               </svg>
             </div>
             <div>
-              <h2 className="analytics-title-main">Performance Telemetry</h2>
+              <h2 className="analytics-title-main">Analytics & Progress</h2>
               <p className="analytics-subtitle">
-                Accurate question-level pacing, domain equilibrium & attempt history
+                Comprehensive question-level telemetry, pacing, and domain mastery
               </p>
             </div>
           </div>
@@ -277,6 +343,13 @@ export default function AnalyticsModal({
             ✕
           </button>
         </header>
+
+        {/* Action Feedback Banner */}
+        {actionFeedback && (
+          <div className={`action-feedback-toast ${actionFeedback.type}`}>
+            {actionFeedback.msg}
+          </div>
+        )}
 
         {/* Modal Scroll Body */}
         <div className="analytics-body-scroll">
@@ -988,7 +1061,6 @@ export default function AnalyticsModal({
                 </div>
               </div>
 
-              {/* Hierarchy Filter and Search Bar */}
               <div className="hierarchy-filter-toolbar">
                 <div className="hierarchy-module-filter-pills">
                   <button
@@ -1038,7 +1110,6 @@ export default function AnalyticsModal({
                 </div>
               </div>
 
-              {/* Modern Domain Cards Container */}
               <div className="domain-tree-container">
                 {filteredDomainHierarchy.map((dom) => {
                   const domStat = stats.domainStats[dom.code] || {
@@ -1052,7 +1123,6 @@ export default function AnalyticsModal({
 
                   return (
                     <div key={dom.code} className="domain-modern-card">
-                      {/* Domain Header Card */}
                       <div className="domain-modern-header">
                         <div className="domain-header-main">
                           <span className={`domain-badge-pill ${isMath ? "pill-math" : "pill-reading"}`}>
@@ -1079,7 +1149,6 @@ export default function AnalyticsModal({
                         </div>
                       </div>
 
-                      {/* Domain Skills Rows */}
                       <div className="domain-skills-list">
                         {dom.skills.map((sk) => {
                           const skStat = stats.skillStats[sk.code] || {
@@ -1180,23 +1249,107 @@ export default function AnalyticsModal({
         {/* Modal Footer Bar */}
         <footer className="analytics-footer-bar">
           <div className="footer-meta-stats">
-            Total lifetime attempts: <strong>{stats.totalAttemptsCount}</strong> • Global avg pace: <strong>~{stats.avgTimeSeconds}s / question</strong>
+            Lifetime attempts: <strong>{stats.totalAttemptsCount}</strong> • Global avg pace: <strong>~{stats.avgTimeSeconds}s / question</strong>
           </div>
 
-          <button
-            type="button"
-            className="btn-danger-link"
-            onClick={async () => {
-              if (confirm("Reset all question history and test telemetry permanently?")) {
-                await onReset();
-                onClose();
-              }
-            }}
-          >
-            Reset Progress Telemetry
-          </button>
+          <div className="footer-actions-group">
+            {/* Export Progress */}
+            <button
+              type="button"
+              className="retro-btn footer-action-btn btn-export-positive"
+              onClick={handleExport}
+              title="Download your entire progress history as a .liprep backup file"
+            >
+              <Icons.Download />
+              <span>Export Progress</span>
+            </button>
+
+            {/* Import Progress */}
+            <label
+              className="retro-btn footer-action-btn btn-import-positive"
+              title="Restore previous progress from a .liprep file"
+            >
+              <Icons.Upload />
+              <span>Import Progress</span>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".liprep,.json"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleImportFile(f);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+              />
+            </label>
+
+            {/* Reset Progress with manual multi-click progression */}
+            <button
+              type="button"
+              className="retro-btn footer-action-btn btn-reset-danger"
+              onClick={handleResetButtonClick}
+            >
+              <Icons.Trash />
+              <span>
+                {resetClickCount === 0 && "Reset Progress"}
+                {resetClickCount === 1 && "Misclick prolly"}
+                {resetClickCount === 2 && "yeah..."}
+              </span>
+            </button>
+          </div>
         </footer>
       </div>
+
+      {/* Confirmation Modal with Screen Shake */}
+      {isResetConfirmOpen &&
+        createPortal(
+          <div
+            className="full-screen-blur-overlay animate-fade-in"
+            style={{ zIndex: 100000 }}
+            onClick={() => {
+              if (!isResetting) setIsResetConfirmOpen(false);
+            }}
+          >
+            <div
+              className="reset-sure-modal-card animate-shake"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="reset-sure-title">Are you SUREEEEE???</h3>
+              <p className="reset-sure-desc">
+                This will completely obliterate all your solved questions, pacing telemetry, streaks, and mistake bookmarks forever!
+              </p>
+
+              <div className="reset-sure-btn-row">
+                <button
+                  type="button"
+                  className="retro-btn btn-take-back-orange"
+                  style={{ flex: 1 }}
+                  disabled={isResetting}
+                  onClick={() => setIsResetConfirmOpen(false)}
+                >
+                  No, take me back
+                </button>
+                <button
+                  type="button"
+                  className="retro-btn btn-reset-nuke"
+                  style={{ flex: 1 }}
+                  disabled={isResetting}
+                  onClick={async () => {
+                    setIsResetting(true);
+                    await onReset();
+                    setIsResetting(false);
+                    setIsResetConfirmOpen(false);
+                    onClose();
+                  }}
+                >
+                  {isResetting ? "Resetting..." : "Yes, Nuke Everything!"}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>,
     document.body
   );

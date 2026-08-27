@@ -360,7 +360,6 @@ export function normalizeQuestion(value: unknown): SatQuestion | null {
     }
     rawStimulus = null;
   } else {
-    // If EBRW stem already starts with or includes the raw stimulus, strip it so it doesn't duplicate
     if (rawStimulus && typeof rawStimulus === "string") {
       const stimTrim = rawStimulus.trim();
       if (stem.trim().startsWith(stimTrim)) {
@@ -997,4 +996,126 @@ export async function getUserStatistics(): Promise<UserStats> {
 export async function clearAllUserData(): Promise<void> {
   await progressDb.attempts.clear();
   await progressDb.bookmarks.clear();
+}
+
+/**
+ * Robust .liprep Progress Exporter & Importer
+ */
+export interface LiPrepExportPayload {
+  format: "LiPrep";
+  version: number;
+  exportedAt: number;
+  exportDateStr: string;
+  data: {
+    attempts: AttemptRecord[];
+    bookmarks: BookmarkRecord[];
+  };
+}
+
+export async function exportUserData(): Promise<string> {
+  const attempts = await progressDb.attempts.toArray();
+  const bookmarks = await progressDb.bookmarks.toArray();
+  const now = new Date();
+  const dateStr = formatDateKey(now);
+
+  const payload: LiPrepExportPayload = {
+    format: "LiPrep",
+    version: 1,
+    exportedAt: now.getTime(),
+    exportDateStr: dateStr,
+    data: {
+      attempts: attempts.map((a) => ({
+        questionId: a.questionId,
+        module: a.module,
+        primary_class_cd: a.primary_class_cd,
+        skill_cd: a.skill_cd,
+        score_band_range_cd: a.score_band_range_cd,
+        userAnswer: a.userAnswer,
+        isCorrect: a.isCorrect,
+        timeSpentSeconds: a.timeSpentSeconds,
+        solvedAt: a.solvedAt,
+        dateKey: a.dateKey,
+      })),
+      bookmarks: bookmarks.map((b) => ({
+        questionId: b.questionId,
+        bookmarkedAt: b.bookmarkedAt,
+      })),
+    },
+  };
+
+  const jsonStr = JSON.stringify(payload, null, 2);
+  const blob = new Blob([jsonStr], { type: "application/json" });
+  const downloadUrl = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = downloadUrl;
+  a.download = `${dateStr}.liprep`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(downloadUrl);
+
+  return `${dateStr}.liprep`;
+}
+
+export async function importUserData(file: File): Promise<{ attemptsCount: number; bookmarksCount: number }> {
+  const text = await file.text();
+  let json: unknown;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new Error("Invalid .liprep file. Could not parse JSON content.");
+  }
+
+  if (!isRecord(json) || (json.format !== "LiPrep" && !json.data)) {
+    throw new Error("Invalid .liprep backup format.");
+  }
+
+  const rawData = (isRecord(json.data) ? json.data : json) as JsonRecord;
+  const rawAttempts = Array.isArray(rawData.attempts) ? rawData.attempts : [];
+  const rawBookmarks = Array.isArray(rawData.bookmarks) ? rawData.bookmarks : [];
+
+  const validAttempts: AttemptRecord[] = [];
+  for (const a of rawAttempts) {
+    if (isRecord(a) && typeof a.questionId === "string" && typeof a.isCorrect === "boolean") {
+      validAttempts.push({
+        questionId: asString(a.questionId),
+        module: asString(a.module) || "reading",
+        primary_class_cd: asString(a.primary_class_cd),
+        skill_cd: asString(a.skill_cd),
+        score_band_range_cd: asNumber(a.score_band_range_cd, 3),
+        userAnswer: asString(a.userAnswer),
+        isCorrect: Boolean(a.isCorrect),
+        timeSpentSeconds: asNumber(a.timeSpentSeconds, 1),
+        solvedAt: asNumber(a.solvedAt, Date.now()),
+        dateKey: asString(a.dateKey) || formatDateKey(),
+      });
+    }
+  }
+
+  const validBookmarks: BookmarkRecord[] = [];
+  for (const b of rawBookmarks) {
+    if (isRecord(b) && typeof b.questionId === "string") {
+      validBookmarks.push({
+        questionId: asString(b.questionId),
+        bookmarkedAt: asNumber(b.bookmarkedAt, Date.now()),
+      });
+    }
+  }
+
+  await progressDb.transaction("rw", progressDb.attempts, progressDb.bookmarks, async () => {
+    await progressDb.attempts.clear();
+    await progressDb.bookmarks.clear();
+    if (validAttempts.length > 0) {
+      await progressDb.attempts.bulkAdd(validAttempts);
+    }
+    if (validBookmarks.length > 0) {
+      await progressDb.bookmarks.bulkPut(validBookmarks);
+    }
+  });
+
+  return {
+    attemptsCount: validAttempts.length,
+    bookmarksCount: validBookmarks.length,
+  };
 }
