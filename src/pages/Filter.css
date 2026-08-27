@@ -6,61 +6,19 @@
   flex-direction: column;
   gap: 24px;
   position: relative;
-  overflow-x: hidden;
   box-sizing: border-box;
+  overflow-x: clip;
 }
 
-/* Background Animated Blobs */
-.screen-bg-blob {
-  position: fixed;
-  pointer-events: none;
-  z-index: -1;
-  opacity: 1;
-  will-change: transform;
-}
-
-.blob-orange-ebrw {
-  bottom: 0;
-  left: 0;
-  width: 420px;
-  max-width: 35vw;
-}
-
-.blob-purple-math {
-  top: 0;
-  right: 0;
-  width: 460px;
-  max-width: 38vw;
-}
-
-@keyframes blobFloat1 {
-  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-  33% { transform: translate(25px, -18px) rotate(6deg) scale(1.04); }
-  66% { transform: translate(-18px, 14px) rotate(-5deg) scale(0.97); }
-  100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-}
-
-@keyframes blobFloat2 {
-  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-  33% { transform: translate(-22px, 20px) rotate(-6deg) scale(1.03); }
-  66% { transform: translate(16px, -12px) rotate(5deg) scale(0.98); }
-  100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-}
-
-.animated-blob-1 {
-  animation: blobFloat1 22s ease-in-out infinite alternate;
-}
-
-.animated-blob-2 {
-  animation: blobFloat2 26s ease-in-out infinite alternate;
-}
-
+/* Header */
 .filter-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
+  position: relative;
+  z-index: 2;
 }
 
 .greeting-title {
@@ -79,18 +37,162 @@
   display: inline-block;
 }
 
-/* Default Desktop 3-Column Layout */
+/* ==========================================================================
+   Base Layout (> 1380px): 3-Pane Spread
+   ========================================================================== */
 .filter-main-layout {
   display: grid;
   grid-template-columns: 280px 1fr 280px;
   gap: 20px;
   align-items: start;
+  position: relative;
+  z-index: 1;
 }
 
-.calendar-pane { order: 1; }
-.modules-selection-pane { order: 2; }
-.filter-controls-pane { order: 3; }
+.calendar-pane {
+  order: 1;
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+}
 
+.modules-selection-pane {
+  order: 2;
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.filter-controls-pane {
+  order: 3;
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Desktop Breakpoint (1101px - 1380px):
+   Col 1: EBRW, Col 2: Math, Col 3: Filter Controls (Top) + Heatmap (Bottom)
+   ========================================================================== */
+@media (max-width: 1380px) and (min-width: 1101px) {
+  .filter-main-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    grid-template-areas:
+      "modules controls"
+      "modules calendar";
+    gap: 20px;
+    align-items: start;
+  }
+
+  .modules-selection-pane {
+    grid-area: modules;
+    order: 1;
+    width: 100%;
+  }
+
+  .filter-controls-pane {
+    grid-area: controls;
+    order: 2;
+    width: 100%;
+  }
+
+  .calendar-pane {
+    grid-area: calendar;
+    order: 3;
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
+   2-Column Breakpoint (769px - 1100px):
+   Top Row: Controls & Calendar (Side by Side)
+   Bottom Row: EBRW & Math Modules
+   ========================================================================== */
+@media (max-width: 1100px) and (min-width: 769px) {
+  .filter-main-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "controls calendar"
+      "modules modules";
+    gap: 20px;
+  }
+
+  .filter-controls-pane {
+    grid-area: controls;
+    order: 1;
+    width: 100%;
+  }
+
+  .calendar-pane {
+    grid-area: calendar;
+    order: 2;
+    width: 100%;
+  }
+
+  .modules-selection-pane {
+    grid-area: modules;
+    order: 3;
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
+   Mobile Breakpoint (<= 768px): Single-Column Vertical Stack
+   ========================================================================== */
+@media (max-width: 768px) {
+  .filter-page {
+    padding: 20px 14px;
+    gap: 18px;
+  }
+
+  .filter-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .greeting-title {
+    font-size: 1.6rem;
+  }
+
+  .greeting-subtitle {
+    display: block;
+    margin-left: 0;
+    margin-top: 4px;
+    font-size: 0.92rem;
+  }
+
+  .filter-main-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .filter-controls-pane {
+    order: 1;
+    width: 100%;
+  }
+
+  .modules-selection-pane {
+    order: 2;
+    width: 100%;
+  }
+
+  .calendar-pane {
+    order: 3;
+    width: 100%;
+  }
+
+  .filter-control-card {
+    padding: 16px 14px;
+  }
+}
+
+/* ==========================================================================
+   Widget Cards & UI Controls
+   ========================================================================== */
 .stats-trigger-card {
   padding: 20px;
   text-align: center;
@@ -188,7 +290,6 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-/* Checkbox Toggle with Smooth Pop Animation */
 .bluebook-exclude-toggle {
   display: flex;
   align-items: center;
@@ -296,296 +397,4 @@
 
 .diff-dot-button.is-active {
   transform: scale(1.18);
-}
-
-/* Fullscreen Blurred Modal Viewport (Diagnostics) */
-.stats-modal-card {
-  background: #FFFFFF;
-  border: 2.5px solid var(--color-navy);
-  border-radius: var(--radius-card);
-  max-width: 960px;
-  width: 100%;
-  max-height: 88vh;
-  box-shadow: 0 20px 48px rgba(16, 55, 92, 0.2);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin: auto;
-  box-sizing: border-box;
-}
-
-.modal-scroll-body {
-  overflow-y: auto;
-  padding-right: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  flex: 1;
-  -webkit-overflow-scrolling: touch;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.stats-tab-group {
-  display: flex;
-  background: #F1F5F9;
-  border-radius: 8px;
-  padding: 3px;
-  gap: 2px;
-}
-
-.stats-tab-btn {
-  border: none;
-  background: transparent;
-  padding: 6px 14px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #64748B;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.stats-tab-btn.active {
-  background: #FFFFFF;
-  color: var(--color-navy);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.modal-stat-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-}
-
-.stat-metric-box {
-  background: #F8FAFC;
-  border: 1.5px solid #E2E8F0;
-  border-radius: 12px;
-  padding: 14px;
-  text-align: center;
-}
-
-.highlight-stat-box {
-  border-color: #CBD5E1;
-  background: #F0F4FF;
-}
-
-.stat-metric-value {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--color-navy);
-}
-
-.stat-metric-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748B;
-  text-transform: uppercase;
-}
-
-.stats-section-block {
-  background: #F8FAFC;
-  border-radius: 14px;
-  padding: 18px;
-  border: 1.5px solid #E2E8F0;
-}
-
-.section-block-title {
-  font-size: 0.98rem;
-  font-weight: 800;
-  color: var(--color-navy);
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/* Offline SVG Progress Bars & Charts */
-.domain-card-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.domain-stat-card {
-  background: #FFFFFF;
-  border: 1px solid #CBD5E1;
-  border-radius: 10px;
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.domain-stat-left {
-  flex: 1;
-  min-width: 0;
-}
-
-.domain-stat-title {
-  font-weight: 800;
-  font-size: 0.92rem;
-  color: var(--color-navy);
-}
-
-.domain-stat-sub {
-  font-size: 0.78rem;
-  color: #64748B;
-  margin-top: 2px;
-}
-
-.domain-stat-bars-container {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  width: 260px;
-}
-
-.gauge-track {
-  width: 100%;
-  height: 10px;
-  background: #E2E8F0;
-  border-radius: 5px;
-  overflow: hidden;
-  position: relative;
-}
-
-.gauge-fill-first {
-  height: 100%;
-  background: var(--color-indigo);
-  border-radius: 5px;
-  transition: width 0.4s ease;
-}
-
-.gauge-fill-overall {
-  height: 100%;
-  background: var(--color-orange);
-  border-radius: 5px;
-  transition: width 0.4s ease;
-}
-
-.difficulty-dual-chart-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-  height: 180px;
-  align-items: flex-end;
-  padding-top: 10px;
-}
-
-.diff-col-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 100%;
-  justify-content: flex-end;
-}
-
-.diff-bars-track-area {
-  display: flex;
-  gap: 4px;
-  width: 100%;
-  height: 120px;
-  align-items: flex-end;
-  justify-content: center;
-}
-
-.diff-single-bar {
-  width: 45%;
-  border-radius: 4px 4px 0 0;
-  transition: height 0.4s ease;
-  min-height: 2px;
-}
-
-.diff-bar-accuracy {
-  background: var(--color-navy);
-}
-
-.diff-bar-time {
-  background: var(--color-orange);
-}
-
-.diff-meta-label {
-  font-size: 0.72rem;
-  font-weight: 800;
-  margin-top: 6px;
-  color: var(--color-navy);
-}
-
-.diff-meta-sub {
-  font-size: 0.68rem;
-  color: #64748B;
-}
-
-/* ==========================================================================
-   Responsive Overhaul for Medium & Mobile Aspect Ratios
-   ========================================================================== */
-@media (max-width: 1180px) and (min-width: 769px) {
-  .filter-main-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas:
-      "controls calendar"
-      "modules modules";
-    gap: 20px;
-  }
-  .filter-controls-pane {
-    grid-area: controls;
-    order: 1;
-    width: 100%;
-  }
-  .calendar-pane {
-    grid-area: calendar;
-    order: 2;
-    width: 100%;
-  }
-  .modules-selection-pane {
-    grid-area: modules;
-    order: 3;
-    width: 100%;
-  }
-}
-
-@media (max-width: 768px) {
-  .filter-page {
-    padding: 20px 14px;
-    gap: 18px;
-  }
-  .filter-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-  .greeting-title {
-    font-size: 1.6rem;
-  }
-  .greeting-subtitle {
-    display: block;
-    margin-left: 0;
-    margin-top: 4px;
-    font-size: 0.92rem;
-  }
-  .filter-main-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .filter-controls-pane { order: 1; width: 100%; }
-  .modules-selection-pane { order: 2; width: 100%; }
-  .calendar-pane { order: 3; width: 100%; }
-  .filter-control-card {
-    padding: 16px 14px;
-  }
-  .modal-stat-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .domain-stat-bars-container {
-    width: 180px;
-  }
 }

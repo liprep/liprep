@@ -19,6 +19,18 @@ import "./Practice.css";
 
 const CHOICE_LABELS = ["A", "B", "C", "D"];
 
+// Google Form URL config for feedback & issue reporting
+// Pass question ID directly via URL parameters
+const GOOGLE_FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdW5yQbQblQx_eNHk0jEUQlkcvF-AIGNrBJHyvtlE9q5tL8sA/viewform?usp=pp_url";
+const QUESTION_ID_ENTRY_KEY = "entry.382573494"; // Prefill entry field key
+
+function getFeedbackUrl(questionId: string): string {
+  const params = new URLSearchParams();
+  params.set("usp", "pp_url");
+  params.set(QUESTION_ID_ENTRY_KEY, questionId);
+  return `${GOOGLE_FORM_BASE_URL}?${params.toString()}`;
+}
+
 function parseNumericValue(value: string): number | null {
   const trimmed = value.trim();
   if (!/^-?(?:\d+(?:\.\d*)?|\.\d+)(?:\/-?(?:\d+(?:\.\d*)?|\.\d+))?$/.test(trimmed)) {
@@ -527,6 +539,8 @@ export default function Practice() {
         Math.abs(currentQ.createDate - currentQ.updateDate) > 60000 &&
         createdFormatted !== updatedFormatted));
 
+  const feedbackUrl = currentQ ? getFeedbackUrl(currentQ.questionId) : "#";
+
   return (
     <div className="bluebook-app-container">
       {/* Top Header Bar */}
@@ -1005,6 +1019,7 @@ export default function Practice() {
         <MathReferenceSheet onClose={() => setIsReferenceOpen(false)} />
       )}
 
+      {/* Question Info Popup with Feedback/Report Feature */}
       {isInfoOpen &&
         createPortal(
           <div className="full-screen-blur-overlay" onClick={() => setIsInfoOpen(false)}>
@@ -1029,6 +1044,32 @@ export default function Practice() {
                 {showUpdated && (
                   <div><strong>Updated:</strong> {updatedFormatted}</div>
                 )}
+
+                {/* Report / Feedback Action */}
+                <div style={{ marginTop: "10px", paddingTop: "14px", borderTop: "1.5px solid #E2E8F0" }}>
+                  <a
+                    href={feedbackUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="retro-btn"
+                    style={{
+                      width: "100%",
+                      textDecoration: "none",
+                      gap: "8px",
+                      padding: "10px 16px",
+                      fontSize: "0.9rem",
+                      backgroundColor: "#FFF8F0",
+                      borderColor: "var(--color-navy)",
+                      color: "var(--color-navy)",
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "#E11D48" }}>
+                      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                      <line x1="4" y1="22" x2="4" y2="15" />
+                    </svg>
+                    <span>Report Issue / Feedback</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>,

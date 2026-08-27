@@ -163,25 +163,6 @@ export default function Filter() {
 
   return (
     <div className="filter-page animate-fade-in">
-      <div className="blobs-isolated-viewport" aria-hidden="true">
-        <img
-          src="/bg-blob-orange.svg"
-          alt=""
-          className="screen-bg-blob blob-orange-ebrw animated-blob-1"
-          onError={(e) => {
-            (e.target as HTMLElement).style.display = "none";
-          }}
-        />
-        <img
-          src="/bg-blob-purple.svg"
-          alt=""
-          className="screen-bg-blob blob-purple-math animated-blob-2"
-          onError={(e) => {
-            (e.target as HTMLElement).style.display = "none";
-          }}
-        />
-      </div>
-
       <header className="filter-header">
         <div>
           <h1 className="greeting-title">

@@ -4,6 +4,8 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 /* 
@@ -79,6 +81,25 @@
 
 .retro-card:hover {
   box-shadow: var(--shadow-retro-hover);
+}
+
+/* Global Modal Header Flex (Guarantees close button stays pinned top-right) */
+.modal-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  margin-bottom: 8px !important;
+  gap: 12px !important;
+}
+
+.modal-header h3 {
+  margin: 0 !important;
+  flex: 1 !important;
+}
+
+.modal-header .retro-btn {
+  flex-shrink: 0 !important;
 }
 
 @keyframes fadeIn {

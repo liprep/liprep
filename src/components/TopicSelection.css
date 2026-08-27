@@ -4,9 +4,67 @@
   gap: 20px;
   flex: 1;
   width: 100%;
+  align-items: start;
 }
 
+/* Wrapper holds the absolute blob behind the card */
+.module-column-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Background blobs with 50% larger dimensions, contained behind cards */
+.card-bg-blob {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  opacity: 0.95;
+  will-change: transform;
+}
+
+.blob-ebrw-bottom-left {
+  bottom: -65px;
+  left: -80px;
+  width: 420px;
+  max-width: 90vw;
+}
+
+.blob-math-top-right {
+  top: -65px;
+  right: -80px;
+  width: 450px;
+  max-width: 90vw;
+}
+
+@keyframes blobFloat1 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  33% { transform: translate(14px, -12px) rotate(4deg) scale(1.03); }
+  66% { transform: translate(-12px, 10px) rotate(-3deg) scale(0.98); }
+  100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+}
+
+@keyframes blobFloat2 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  33% { transform: translate(-12px, 12px) rotate(-4deg) scale(1.03); }
+  66% { transform: translate(10px, -8px) rotate(3deg) scale(0.98); }
+  100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+}
+
+.animated-blob-1 {
+  animation: blobFloat1 22s ease-in-out infinite alternate;
+}
+
+.animated-blob-2 {
+  animation: blobFloat2 26s ease-in-out infinite alternate;
+}
+
+/* Card strictly masks all inner cosmetic objects to its boundary */
 .module-column-card {
+  position: relative;
+  z-index: 1;
   background: var(--color-surface);
   border: 2px solid var(--color-navy);
   border-radius: var(--radius-card);
@@ -14,67 +72,85 @@
   box-shadow: var(--shadow-retro);
   display: flex;
   flex-direction: column;
-  max-height: 720px;
-  position: relative;
-  overflow: hidden;
   box-sizing: border-box;
+  height: fit-content;
+  overflow: hidden;
 }
 
 .module-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
   border-bottom: 2px solid #E2E8F0;
-  gap: 8px;
+  gap: 12px;
+  position: relative;
 }
 
 .title-with-cosmetics {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
   min-width: 0;
+  flex: 1;
 }
 
 .module-badge-title {
-  font-size: 1.35rem;
+  font-size: 1.45rem;
   font-weight: 800;
   color: var(--color-navy);
   white-space: nowrap;
+  line-height: 1;
 }
 
+/* Large, spaced-out, higher opacity decorative SVGs (no bg/borders) */
 .header-cosmetic-icons {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 14px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  pointer-events: none;
 }
 
 .cosmetic-svg-icon {
-  width: 24px;
-  height: 24px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
   display: block;
   flex-shrink: 0;
+  opacity: 0.55; /* Higher, distinct opacity */
+  pointer-events: none;
+  user-select: none;
+  transform: none !important;
 }
 
 .module-select-all-btn {
-  background: none;
-  border: none;
+  background: #EEF2FF;
+  border: 1.5px solid #C7D2FE;
   color: var(--color-indigo);
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
   white-space: nowrap;
   touch-action: manipulation;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.module-select-all-btn:hover {
+  background: var(--color-indigo);
+  color: #FFFFFF;
+  border-color: var(--color-indigo);
 }
 
 .domain-scroll-area {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-right: 6px;
+  overflow: visible;
+  padding-right: 0;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -113,7 +189,7 @@
   line-height: 1.35;
 }
 
-/* Smooth Animated Custom Checkboxes */
+/* Custom Checkboxes */
 .custom-checkbox {
   width: 20px;
   height: 20px;
@@ -226,9 +302,25 @@
   }
   .module-column-card {
     padding: 16px 14px;
-    max-height: 520px;
   }
   .subtopic-list {
     padding-left: 20px;
+  }
+  /* Mobile-safe blob positions: tight offset, never overflows screen */
+  .blob-ebrw-bottom-left {
+    bottom: -25px;
+    left: -20px;
+    width: 200px;
+    max-width: 60vw;
+  }
+  .blob-math-top-right {
+    top: -25px;
+    right: -20px;
+    width: 220px;
+    max-width: 60vw;
+  }
+  .cosmetic-svg-icon {
+    width: 38px;
+    height: 38px;
   }
 }
