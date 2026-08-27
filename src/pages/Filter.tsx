@@ -239,7 +239,7 @@ export default function Filter() {
             </label>
 
             <h3 className="filter-section-title" style={{ marginTop: "4px" }}>
-              Difficulty (Bands 1–7)
+              Difficulty (Bands 1➔7)
             </h3>
             <div className="difficulty-band-group">
               <div className="diff-tier-row">
