@@ -111,6 +111,7 @@ export default function AnalyticsModal({
   onDrillSkill,
 }: AnalyticsModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>("executive");
+  const [scoreBandModule, setScoreBandModule] = useState<"all" | "reading" | "math">("all");
   const [hierarchyModuleFilter, setHierarchyModuleFilter] = useState<"all" | "reading" | "math">("all");
   const [hierarchySearchQuery, setHierarchySearchQuery] = useState("");
   const [hoveredRadarIndex, setHoveredRadarIndex] = useState<number | null>(null);
@@ -123,6 +124,9 @@ export default function AnalyticsModal({
     x: number;
     y: number;
   } | null>(null);
+
+  // Mobile collapsed progress actions state
+  const [isProgressActionsExpanded, setIsProgressActionsExpanded] = useState(false);
 
   // Manual multi-click progression state
   const [resetClickCount, setResetClickCount] = useState<number>(0);
@@ -181,6 +185,12 @@ export default function AnalyticsModal({
     skills.forEach((s) => uniqueMap.set(s.code, s));
     return Array.from(uniqueMap.values());
   }, [stats.weakestSkills, stats.strongestSkills]);
+
+  const activeDifficultyStats = useMemo(() => {
+    if (scoreBandModule === "reading") return stats.ebrw.difficultyStats;
+    if (scoreBandModule === "math") return stats.math.difficultyStats;
+    return stats.difficultyStats;
+  }, [scoreBandModule, stats]);
 
   const formatPrepTime = (totalSec: number) => {
     const mins = Math.floor(totalSec / 60);
@@ -634,7 +644,7 @@ export default function AnalyticsModal({
                           </span>
                         </div>
                         <div className="action-item-right">
-                          <span style={{ fontSize: "0.82rem", color: "#64748B", fontWeight: 600 }}>
+                          <span className="action-item-meta">
                             {sk.attempted} attempts • ~{sk.avgTime}s/q
                           </span>
                           <span className="action-acc-badge">{sk.accuracyPct}%</span>
@@ -774,7 +784,7 @@ export default function AnalyticsModal({
                 </svg>
               </div>
 
-              <div className="chart-panel-card">
+              <div className="chart-panel-card radar-summary-card">
                 <div className="chart-panel-header">
                   <div className="chart-title-cluster">
                     <h3>Domain Index Summary</h3>
@@ -782,7 +792,7 @@ export default function AnalyticsModal({
                   </div>
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px", overflowY: "auto", maxHeight: "330px" }}>
+                <div className="domain-summary-scroll-list">
                   {radarDomains.map((dom) => {
                     const data = stats.domainStats[dom.code] || {
                       name: dom.label,
@@ -793,7 +803,7 @@ export default function AnalyticsModal({
                     };
 
                     return (
-                      <div key={dom.code} style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", padding: "10px 14px", borderRadius: "10px" }}>
+                      <div key={dom.code} className="domain-summary-card-item">
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
                           <span style={{ fontWeight: 800, fontSize: "0.85rem", color: "var(--color-navy)" }}>
                             {domainMap[dom.code] || dom.label}
@@ -951,15 +961,50 @@ export default function AnalyticsModal({
                   <h3>Score Bands 1 → 7 Dual Pacing & Accuracy Curve</h3>
                   <p>Accuracy rate bars overlaid with average time-per-question spline</p>
                 </div>
-                <div className="chart-legend-row">
-                  <span className="legend-dot-item">
-                    <span className="legend-swatch" style={{ background: "var(--color-navy)" }} />
-                    Accuracy (%)
-                  </span>
-                  <span className="legend-dot-item">
-                    <span className="legend-swatch" style={{ background: "#FF9955" }} />
-                    Pace (Seconds)
-                  </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+                  <div className="hierarchy-module-filter-pills">
+                    <button
+                      type="button"
+                      className={`hierarchy-filter-pill-btn ${scoreBandModule === "all" ? "active" : ""}`}
+                      onClick={() => setScoreBandModule("all")}
+                    >
+                      All Sections
+                    </button>
+                    <button
+                      type="button"
+                      className={`hierarchy-filter-pill-btn ${scoreBandModule === "reading" ? "active" : ""}`}
+                      onClick={() => setScoreBandModule("reading")}
+                    >
+                      EBRW
+                    </button>
+                    <button
+                      type="button"
+                      className={`hierarchy-filter-pill-btn ${scoreBandModule === "math" ? "active" : ""}`}
+                      onClick={() => setScoreBandModule("math")}
+                    >
+                      Math
+                    </button>
+                  </div>
+                  <div className="chart-legend-row">
+                    <span className="legend-dot-item">
+                      <span
+                        className="legend-swatch"
+                        style={{
+                          background:
+                            scoreBandModule === "reading"
+                              ? "#525FE1"
+                              : scoreBandModule === "math"
+                              ? "#FF9955"
+                              : "var(--color-navy)",
+                        }}
+                      />
+                      Accuracy (%)
+                    </span>
+                    <span className="legend-dot-item">
+                      <span className="legend-swatch" style={{ background: "#FF9955" }} />
+                      Pace (Seconds)
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -969,10 +1014,16 @@ export default function AnalyticsModal({
                 <line x1="50" y1="30" x2="660" y2="30" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="3 3" />
 
                 {[1, 2, 3, 4, 5, 6, 7].map((band, idx) => {
-                  const data = stats.difficultyStats[band] || { accuracyPct: 0, avgTimeSeconds: 0, attempted: 0 };
+                  const data = activeDifficultyStats[band] || { accuracyPct: 0, avgTimeSeconds: 0, attempted: 0 };
                   const x = 70 + idx * 82;
                   const barHeight = (data.accuracyPct / 100) * 160;
                   const y = 190 - barHeight;
+                  const barColor =
+                    scoreBandModule === "reading"
+                      ? "#525FE1"
+                      : scoreBandModule === "math"
+                      ? "#FF9955"
+                      : "var(--color-navy)";
 
                   return (
                     <g key={band}>
@@ -982,7 +1033,7 @@ export default function AnalyticsModal({
                         width="46"
                         height={barHeight}
                         rx="6"
-                        fill="var(--color-navy)"
+                        fill={barColor}
                         opacity={data.attempted > 0 ? "0.9" : "0.15"}
                       />
                       <text x={x + 23} y="206" textAnchor="middle" fill="#10375C" fontSize="11" fontWeight="800">
@@ -997,7 +1048,7 @@ export default function AnalyticsModal({
 
                 {(() => {
                   const splinePoints = [1, 2, 3, 4, 5, 6, 7].map((band, idx) => {
-                    const data = stats.difficultyStats[band] || { avgTimeSeconds: 0, attempted: 0 };
+                    const data = activeDifficultyStats[band] || { avgTimeSeconds: 0, attempted: 0 };
                     const x = 70 + idx * 82 + 23;
                     const maxTime = 140;
                     const clamped = Math.min(maxTime, data.avgTimeSeconds);
@@ -1252,7 +1303,19 @@ export default function AnalyticsModal({
             Lifetime attempts: <strong>{stats.totalAttemptsCount}</strong> • Global avg pace: <strong>~{stats.avgTimeSeconds}s / question</strong>
           </div>
 
-          <div className="footer-actions-group">
+          {/* Mobile Collapsible Header Toggle */}
+          <button
+            type="button"
+            className="mobile-actions-toggle-btn"
+            onClick={() => setIsProgressActionsExpanded((prev) => !prev)}
+          >
+            <span>Progress & Data Actions</span>
+            <span className={`mobile-toggle-arrow ${isProgressActionsExpanded ? "expanded" : ""}`}>
+              ▼
+            </span>
+          </button>
+
+          <div className={`footer-actions-group ${isProgressActionsExpanded ? "is-expanded" : ""}`}>
             {/* Export Progress */}
             <button
               type="button"

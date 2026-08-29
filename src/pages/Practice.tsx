@@ -20,9 +20,8 @@ import "./Practice.css";
 const CHOICE_LABELS = ["A", "B", "C", "D"];
 
 // Google Form URL config for feedback & issue reporting
-// Pass question ID directly via URL parameters
 const GOOGLE_FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdW5yQbQblQx_eNHk0jEUQlkcvF-AIGNrBJHyvtlE9q5tL8sA/viewform?usp=pp_url";
-const QUESTION_ID_ENTRY_KEY = "entry.382573494"; // Prefill entry field key
+const QUESTION_ID_ENTRY_KEY = "entry.382573494";
 
 function getFeedbackUrl(questionId: string): string {
   const params = new URLSearchParams();
@@ -194,6 +193,7 @@ export default function Practice() {
   useEffect(() => {
     setTimerSeconds(0);
     setIsTimerRunning(true);
+    window.getSelection()?.removeAllRanges();
   }, [currentIndex]);
 
   useEffect(() => {
@@ -358,7 +358,7 @@ export default function Practice() {
                 const nextMark = document.createElement("mark");
                 nextMark.className = "sat-highlight";
                 for (let i = index + 1; i < children.length; i++) {
-                  nextMark.appendChild(children[i]);
+                  nextMark.appendChild(nextMark);
                 }
                 parent.insertBefore(nextMark, markContainer);
               }
@@ -426,6 +426,7 @@ export default function Practice() {
   }, [currentQ?.stem, currentQ?.stimulus, hasStimulus]);
 
   const handleNavigate = useCallback((index: number) => {
+    window.getSelection()?.removeAllRanges();
     setCurrentIndex(index);
     setIsNavOpen(false);
   }, []);
@@ -540,6 +541,9 @@ export default function Practice() {
         createdFormatted !== updatedFormatted));
 
   const feedbackUrl = currentQ ? getFeedbackUrl(currentQ.questionId) : "#";
+  const tutorialSearchUrl = currentQ
+    ? `https://www.google.com/search?q=%22${encodeURIComponent(currentQ.questionId)}%22&tbm=vid`
+    : "#";
 
   return (
     <div className="bluebook-app-container">
@@ -656,14 +660,14 @@ export default function Practice() {
         ) : (
           /* DESKTOP ONLY: EBRW Left Passage Column */
           hasStimulus && (
-            <aside className="stimulus-column">
-              <RichContent content={currentQ.stimulus} />
+            <aside className="stimulus-column" key={`stim-col-${currentQ.questionId}`}>
+              <RichContent key={`stim-rich-${currentQ.questionId}`} content={currentQ.stimulus} />
             </aside>
           )
         )}
 
         {/* Right Column (Desktop) / Main Scroll Area (Mobile) */}
-        <main className="question-column">
+        <main className="question-column" key={`q-main-${currentQ.questionId}`}>
           {/* Question Strap Bar */}
           <div className="bb-question-strap">
             <div className="bb-strap-left">
@@ -699,18 +703,18 @@ export default function Practice() {
 
           {/* MOBILE ONLY: Passage sits cleanly under question strap */}
           {hasStimulus && (
-            <div className="mobile-stimulus">
-              <RichContent content={currentQ.stimulus} />
+            <div className="mobile-stimulus" key={`mobile-stim-${currentQ.questionId}`}>
+              <RichContent key={`mobile-stim-rich-${currentQ.questionId}`} content={currentQ.stimulus} />
             </div>
           )}
 
           {/* Math Prompt / Context */}
           {isMathModule && currentQ.stimulus && (
-            <RichContent content={currentQ.stimulus} className="stem-container" />
+            <RichContent key={`math-stim-${currentQ.questionId}`} content={currentQ.stimulus} className="stem-container" />
           )}
 
           {/* Question Stem */}
-          <RichContent content={cleanStem} className="stem-container" />
+          <RichContent key={`stem-${currentQ.questionId}`} content={cleanStem} className="stem-container" />
 
           {/* Answer Options */}
           {currentQ.type === "mcq" ? (
@@ -719,7 +723,7 @@ export default function Practice() {
                 const label = CHOICE_LABELS[i] || String(i + 1);
                 return (
                   <AnswerOption
-                    key={opt.id}
+                    key={`${currentQ.questionId}-opt-${opt.id}`}
                     label={label}
                     content={opt.content}
                     selected={currentAnswer === label}
@@ -773,7 +777,7 @@ export default function Practice() {
             <details className="rationale-container" open>
               <summary className="rationale-summary">Answer Explanation & Rationale</summary>
               <div className="rationale-body">
-                <RichContent content={currentQ.rationale} />
+                <RichContent key={`rationale-${currentQ.questionId}`} content={currentQ.rationale} />
               </div>
             </details>
           )}
@@ -1019,7 +1023,7 @@ export default function Practice() {
         <MathReferenceSheet onClose={() => setIsReferenceOpen(false)} />
       )}
 
-      {/* Question Info Popup with Feedback/Report Feature */}
+      {/* Question Info Popup with Feedback/Report Feature & Tutorial Lookup */}
       {isInfoOpen &&
         createPortal(
           <div className="full-screen-blur-overlay" onClick={() => setIsInfoOpen(false)}>
@@ -1031,7 +1035,25 @@ export default function Practice() {
                 </button>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px", fontSize: "0.95rem", marginTop: "14px" }}>
-                <div><strong>Question ID:</strong> <code>{currentQ.questionId}</code></div>
+                <div className="question-id-info-row">
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                    <strong>Question ID:</strong> <code>{currentQ.questionId}</code>
+                  </div>
+                  <a
+                    href={tutorialSearchUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="tutorial-search-link"
+                    title={`Search Google videos for "${currentQ.questionId}"`}
+                  >
+                    <span>search for tutorial</span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                      <polyline points="15 3 21 3 21 9" />
+                      <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                  </a>
+                </div>
                 <div><strong>Section:</strong> {currentQ.module === "math" ? "Math" : "Reading and Writing"}</div>
                 <div><strong>Domain:</strong> {domainMap[currentQ.primary_class_cd || ""] || currentQ.primary_class_cd || "—"}</div>
                 <div><strong>Skill:</strong> {codeToNameMap[currentQ.skill_cd] || currentQ.skill_cd}</div>

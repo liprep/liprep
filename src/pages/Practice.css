@@ -450,6 +450,36 @@ mark.sat-highlight {
   font-size: 0.82rem;
 }
 
+/* Question ID & Tutorial Search Link in Info Modal */
+.question-id-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tutorial-search-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #525FE1;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.12s ease;
+  touch-action: manipulation;
+}
+
+.tutorial-search-link:hover {
+  color: #10375C;
+}
+
+.tutorial-search-link svg {
+  flex-shrink: 0;
+}
+
 /* Bottom Bar */
 .bluebook-bottom-bar {
   height: 64px;

@@ -347,6 +347,7 @@
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
   gap: 20px;
+  align-items: stretch;
 }
 
 .equal-chart-row {
@@ -477,6 +478,33 @@
   transition: width 0.4s ease;
 }
 
+/* Radar Summary Scoped Scroll Container */
+.radar-summary-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.domain-summary-scroll-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+  min-height: 0;
+  padding-right: 6px;
+}
+
+.domain-summary-card-item {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
 /* Priority Recommendations */
 .action-priority-list {
   display: flex;
@@ -545,10 +573,18 @@
   flex-shrink: 0;
 }
 
+.action-item-meta {
+  font-size: 0.82rem;
+  color: #64748B;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .action-acc-badge {
   font-weight: 900;
   font-size: 1rem;
   color: var(--color-coral-text);
+  white-space: nowrap;
 }
 
 .action-drill-btn {
@@ -889,6 +925,10 @@
   color: var(--color-navy);
 }
 
+.mobile-actions-toggle-btn {
+  display: none;
+}
+
 .footer-actions-group {
   display: flex;
   align-items: center;
@@ -1020,6 +1060,9 @@
   .module-comparison-grid {
     grid-template-columns: 1fr;
   }
+  .domain-summary-scroll-list {
+    max-height: 360px;
+  }
   .skill-modern-row {
     flex-direction: column;
     align-items: flex-start;
@@ -1111,21 +1154,105 @@
     padding: 16px 14px;
   }
 
+  /* 2-Row Targeted Reinforcement Areas on Mobile */
+  .action-priority-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .action-item-left {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .action-skill-name {
+    font-size: 0.95rem;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.35;
+  }
+
+  .action-item-right {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px dashed #E2E8F0;
+    gap: 10px;
+    flex-wrap: nowrap;
+  }
+
+  .action-item-meta {
+    font-size: 0.78rem;
+    flex: 1;
+  }
+
+  .action-drill-btn {
+    padding: 6px 12px;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+  }
+
+  /* Scoped Radar Domain Index Summary Viewport */
+  .domain-summary-scroll-list {
+    max-height: 320px;
+    padding-right: 2px;
+  }
+
+  /* Collapsed Footer Actions on Mobile */
   .analytics-footer-bar {
     padding: 12px 16px;
     flex-direction: column;
     align-items: stretch;
     text-align: center;
+    gap: 8px;
+  }
+
+  .mobile-actions-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: #F1F5F9;
+    border: 1.5px solid #CBD5E1;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-navy);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .mobile-toggle-arrow {
+    font-size: 0.7rem;
+    transition: transform 0.2s ease;
+  }
+
+  .mobile-toggle-arrow.expanded {
+    transform: rotate(180deg);
   }
 
   .footer-actions-group {
+    display: none;
     width: 100%;
-    justify-content: stretch;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .footer-actions-group.is-expanded {
+    display: flex;
   }
 
   .footer-action-btn {
-    flex: 1;
-    min-width: 120px;
+    width: 100%;
+    min-width: 0;
   }
 
   .reset-sure-btn-row {
