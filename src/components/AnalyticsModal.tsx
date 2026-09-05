@@ -125,8 +125,8 @@ export default function AnalyticsModal({
     y: number;
   } | null>(null);
 
-  // Mobile collapsed progress actions state
-  const [isProgressActionsExpanded, setIsProgressActionsExpanded] = useState(false);
+  // Collapsible Bottom Progress Drawer State
+  const [isFooterDrawerExpanded, setIsFooterDrawerExpanded] = useState(false);
 
   // Manual multi-click progression state
   const [resetClickCount, setResetClickCount] = useState<number>(0);
@@ -1297,70 +1297,81 @@ export default function AnalyticsModal({
           )}
         </div>
 
-        {/* Modal Footer Bar */}
-        <footer className="analytics-footer-bar">
-          <div className="footer-meta-stats">
-            Lifetime attempts: <strong>{stats.totalAttemptsCount}</strong> • Global avg pace: <strong>~{stats.avgTimeSeconds}s / question</strong>
-          </div>
-
-          {/* Mobile Collapsible Header Toggle */}
+        {/* Collapsible Bottom Drawer */}
+        <footer className={`analytics-collapsible-footer ${isFooterDrawerExpanded ? "is-expanded" : ""}`}>
           <button
             type="button"
-            className="mobile-actions-toggle-btn"
-            onClick={() => setIsProgressActionsExpanded((prev) => !prev)}
+            className="analytics-drawer-toggle-btn"
+            onClick={() => setIsFooterDrawerExpanded((prev) => !prev)}
+            aria-expanded={isFooterDrawerExpanded}
           >
-            <span>Progress & Data Actions</span>
-            <span className={`mobile-toggle-arrow ${isProgressActionsExpanded ? "expanded" : ""}`}>
-              ▼
-            </span>
+            <div className="analytics-drawer-toggle-left">
+              <span className="analytics-toggle-telemetry">
+                Lifetime attempts: <strong>{stats.totalAttemptsCount}</strong>
+              </span>
+              <span className="analytics-toggle-dot">•</span>
+              <span className="analytics-toggle-telemetry">
+                Global avg pace: <strong>~{stats.avgTimeSeconds}s / question</strong>
+              </span>
+            </div>
+
+            <div className="analytics-drawer-toggle-right">
+              <span className="analytics-drawer-actions-label">Data & Progress Actions</span>
+              <span className="analytics-drawer-chevron">{isFooterDrawerExpanded ? "▼" : "▲"}</span>
+            </div>
           </button>
 
-          <div className={`footer-actions-group ${isProgressActionsExpanded ? "is-expanded" : ""}`}>
-            {/* Export Progress */}
-            <button
-              type="button"
-              className="retro-btn footer-action-btn btn-export-positive"
-              onClick={handleExport}
-              title="Download your entire progress history as a .liprep backup file"
-            >
-              <Icons.Download />
-              <span>Export Progress</span>
-            </button>
+          {/* Drawer Body */}
+          {isFooterDrawerExpanded && (
+            <div className="analytics-drawer-content animate-fade-in">
+              <div className="footer-actions-group">
+                {/* Export Progress */}
+                <button
+                  type="button"
+                  className="retro-btn footer-action-btn btn-export-positive"
+                  onClick={handleExport}
+                  title="Download your entire progress history as a .liprep backup file"
+                >
+                  <Icons.Download />
+                  <span>Export Progress</span>
+                </button>
 
-            {/* Import Progress */}
-            <label
-              className="retro-btn footer-action-btn btn-import-positive"
-              title="Restore previous progress from a .liprep file"
-            >
-              <Icons.Upload />
-              <span>Import Progress</span>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".liprep,.json"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) handleImportFile(f);
-                  if (fileInputRef.current) fileInputRef.current.value = "";
-                }}
-              />
-            </label>
+                {/* Import Progress */}
+                <label
+                  className="retro-btn footer-action-btn btn-import-positive"
+                  title="Restore previous progress from a .liprep file"
+                >
+                  <Icons.Upload />
+                  <span>Import Progress</span>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".liprep,.json"
+                    style={{ display: "none" }}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleImportFile(f);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                  />
+                </label>
 
-            {/* Reset Progress with manual multi-click progression */}
-            <button
-              type="button"
-              className="retro-btn footer-action-btn btn-reset-danger"
-              onClick={handleResetButtonClick}
-            >
-              <Icons.Trash />
-              <span>
-                {resetClickCount === 0 && "Reset Progress"}
-                {resetClickCount === 1 && "Misclick prolly"}
-                {resetClickCount === 2 && "yeah..."}
-              </span>
-            </button>
-          </div>
+                {/* Reset Progress with manual multi-click progression */}
+                <button
+                  type="button"
+                  className="retro-btn footer-action-btn btn-reset-danger"
+                  onClick={handleResetButtonClick}
+                >
+                  <Icons.Trash />
+                  <span>
+                    {resetClickCount === 0 && "Reset Progress"}
+                    {resetClickCount === 1 && "Misclick prolly"}
+                    {resetClickCount === 2 && "yeah..."}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
         </footer>
       </div>
 

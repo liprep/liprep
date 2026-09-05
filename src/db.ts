@@ -1119,3 +1119,44 @@ export async function importUserData(file: File): Promise<{ attemptsCount: numbe
     bookmarksCount: validBookmarks.length,
   };
 }
+/**
+ * Returns the count of unique questions solved correctly by the student.
+ */
+export async function getSolvedCount(): Promise<number> {
+  try {
+    const attempts = await progressDb.attempts.toArray();
+    const solvedSet = new Set(
+      attempts.filter((a) => a.isCorrect).map((a) => a.questionId)
+    );
+    return solvedSet.size;
+  } catch {
+    return 0;
+  }
+}
+export async function getFirstAttemptTimestamp(): Promise<number | null> {
+  try {
+    const firstAttempt = await progressDb.attempts.orderBy("solvedAt").first();
+    if (firstAttempt && typeof firstAttempt.solvedAt === "number" && firstAttempt.solvedAt > 0) {
+      return firstAttempt.solvedAt;
+    }
+    const all = await progressDb.attempts.toArray();
+    if (all.length > 0) {
+      const timestamps = all.map((a) => a.solvedAt).filter((ts) => typeof ts === "number" && ts > 0);
+      if (timestamps.length > 0) {
+        return Math.min(...timestamps);
+      }
+    }
+    return null;
+  } catch {
+    try {
+      const all = await progressDb.attempts.toArray();
+      if (all.length > 0) {
+        const timestamps = all.map((a) => a.solvedAt).filter((ts) => typeof ts === "number" && ts > 0);
+        if (timestamps.length > 0) {
+          return Math.min(...timestamps);
+        }
+      }
+    } catch {}
+    return null;
+  }
+}

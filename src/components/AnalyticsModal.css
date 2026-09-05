@@ -1,7 +1,3 @@
-/* ==========================================================================
-   LiPrep Diagnostic Intelligence & Analytics Dashboard
-   ========================================================================== */
-
 .analytics-overlay {
   position: fixed;
   inset: 0;
@@ -71,7 +67,7 @@
 
 .analytics-title-main {
   font-size: 1.3rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-navy);
   margin: 0;
   letter-spacing: -0.4px;
@@ -245,7 +241,7 @@
 
 .kpi-label {
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: #64748B;
@@ -253,7 +249,7 @@
 
 .kpi-pill-badge {
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 700;
   padding: 2px 8px;
   border-radius: 10px;
   white-space: nowrap;
@@ -267,7 +263,7 @@
 
 .kpi-value-huge {
   font-size: 2.2rem;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   color: var(--color-navy);
   letter-spacing: -1px;
@@ -306,7 +302,7 @@
 .chart-title-cluster h3 {
   margin: 0;
   font-size: 1.08rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-navy);
   display: flex;
   align-items: center;
@@ -365,7 +361,6 @@
 }
 
 .module-telemetry-box {
-  background: #F8FAFC;
   border: 1.5px solid #E2E8F0;
   border-radius: 14px;
   padding: 16px 18px;
@@ -375,11 +370,11 @@
 }
 
 .module-telemetry-box.box-ebrw {
-  border-left: 4px solid #525FE1;
+  border-bottom: 4px solid #525FE1;
 }
 
 .module-telemetry-box.box-math {
-  border-left: 4px solid #FF9955;
+  border-bottom: 4px solid #FF9955;
 }
 
 .telemetry-row {
@@ -399,7 +394,7 @@
 }
 
 .telemetry-val {
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-navy);
 }
 
@@ -538,7 +533,7 @@
 
 .action-module-tag {
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 700;
   padding: 3px 8px;
   border-radius: 6px;
   text-transform: uppercase;
@@ -558,7 +553,7 @@
 }
 
 .action-skill-name {
-  font-weight: 800;
+  font-weight: 700;
   font-size: 0.92rem;
   color: var(--color-navy);
   white-space: nowrap;
@@ -581,7 +576,7 @@
 }
 
 .action-acc-badge {
-  font-weight: 900;
+  font-weight: 700;
   font-size: 1rem;
   color: var(--color-coral-text);
   white-space: nowrap;
@@ -719,7 +714,7 @@
 
 .domain-badge-pill {
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 700;
   padding: 4px 10px;
   border-radius: 8px;
   text-transform: uppercase;
@@ -741,7 +736,7 @@
 
 .domain-modern-title {
   font-size: 1.05rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-navy);
   margin: 0;
 }
@@ -769,7 +764,7 @@
 
 .domain-header-metric-pill strong {
   color: var(--color-navy);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .domain-skills-list {
@@ -818,7 +813,7 @@
 
 .skill-mastery-status {
   font-size: 0.68rem;
-  font-weight: 800;
+  font-weight: 700;
   padding: 2px 7px;
   border-radius: 6px;
   text-transform: uppercase;
@@ -876,7 +871,7 @@
 
 .metric-val-medium {
   font-size: 0.88rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-navy);
 }
 
@@ -900,38 +895,90 @@
 }
 
 /* ==========================================================================
-   Footer Bar Actions
+   COLLAPSIBLE BOTTOM DRAWER (Exact Match to Wall of Love Aesthetic)
    ========================================================================== */
 
-.analytics-footer-bar {
+.analytics-collapsible-footer {
+  border-top: 2.5px solid var(--color-navy);
   background: #FFFFFF;
-  border-top: 2px solid var(--color-border);
-  padding: 14px 24px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.analytics-drawer-toggle-btn {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 14px 24px;
+  background: #FFFFFF;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-navy);
+  transition: background-color 0.15s ease;
+  touch-action: manipulation;
+  gap: 16px;
   flex-wrap: wrap;
-  gap: 12px;
 }
 
-.footer-meta-stats {
+.analytics-drawer-toggle-btn:hover {
+  background-color: #F8FAFC;
+}
+
+.analytics-drawer-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 0.84rem;
   font-weight: 600;
   color: #64748B;
-  line-height: 1.4;
+  flex-wrap: wrap;
 }
 
-.footer-meta-stats strong {
+.analytics-toggle-telemetry strong {
   color: var(--color-navy);
+  font-weight: 700;
 }
 
-.mobile-actions-toggle-btn {
-  display: none;
+.analytics-toggle-dot {
+  color: #CBD5E1;
+  font-weight: 700;
+}
+
+.analytics-drawer-toggle-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.analytics-drawer-actions-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-navy);
+  padding: 3px 8px;
+}
+
+.analytics-drawer-chevron {
+  font-size: 0.72rem;
+  color: #64748B;
+}
+
+.analytics-drawer-content {
+  padding: 14px 24px 18px;
+  border-top: 1.5px dashed #CBD5E1;
+  background: #F8FAFC;
 }
 
 .footer-actions-group {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
   flex-wrap: wrap;
 }
@@ -994,7 +1041,7 @@
 
 .reset-sure-title {
   font-size: 1.5rem;
-  font-weight: 900;
+  font-weight: 700;
   color: #DC2626;
   margin: 0 0 14px 0;
   letter-spacing: -0.3px;
@@ -1154,7 +1201,6 @@
     padding: 16px 14px;
   }
 
-  /* 2-Row Targeted Reinforcement Areas on Mobile */
   .action-priority-item {
     flex-direction: column;
     align-items: stretch;
@@ -1198,61 +1244,27 @@
     flex-shrink: 0;
   }
 
-  /* Scoped Radar Domain Index Summary Viewport */
   .domain-summary-scroll-list {
     max-height: 320px;
     padding-right: 2px;
   }
 
-  /* Collapsed Footer Actions on Mobile */
-  .analytics-footer-bar {
+  .analytics-drawer-toggle-btn {
     padding: 12px 16px;
-    flex-direction: column;
-    align-items: stretch;
-    text-align: center;
-    gap: 8px;
   }
 
-  .mobile-actions-toggle-btn {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    background: #F1F5F9;
-    border: 1.5px solid #CBD5E1;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--color-navy);
-    cursor: pointer;
-    touch-action: manipulation;
-  }
-
-  .mobile-toggle-arrow {
-    font-size: 0.7rem;
-    transition: transform 0.2s ease;
-  }
-
-  .mobile-toggle-arrow.expanded {
-    transform: rotate(180deg);
+  .analytics-drawer-content {
+    padding: 12px 16px 16px;
   }
 
   .footer-actions-group {
-    display: none;
-    width: 100%;
     flex-direction: column;
+    align-items: stretch;
     gap: 8px;
-    margin-top: 4px;
-  }
-
-  .footer-actions-group.is-expanded {
-    display: flex;
   }
 
   .footer-action-btn {
     width: 100%;
-    min-width: 0;
   }
 
   .reset-sure-btn-row {

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./AppLoader.css";
 
-const CACHE_NAME = "liprep-core-v1";
-const OFFLINE_COMPLETED_KEY = "liprep_offline_ready_v1";
+const CACHE_NAME = "liprep-core-v2";
+const OFFLINE_COMPLETED_KEY = "liprep_offline_ready_v2";
 
 const ASSETS_TO_CACHE = [
   "/",
@@ -30,7 +30,26 @@ const ASSETS_TO_CACHE = [
   "/reference/10.svg",
   "/reference/11.svg",
   "/reference/special-triangles.png",
+  "/fonts/ibm-plex-sans-400.woff2",
+  "/fonts/ibm-plex-sans-500.woff2",
+  "/fonts/ibm-plex-sans-600.woff2",
+  "/fonts/ibm-plex-sans-700.woff2",
+  "/fonts/ibm-plex-sans-800.woff2",
+  "/fonts/ibm-plex-sans-400-italic.woff2",
+  "/fonts/ibm-plex-mono-600.woff2",
+  "/fonts/ibm-plex-mono-700.woff2",
   "https://www.desmos.com/api/v1.9/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6",
+];
+
+const FONTS_TO_VERIFY = [
+  "400 16px 'IBM Plex Sans'",
+  "500 16px 'IBM Plex Sans'",
+  "600 16px 'IBM Plex Sans'",
+  "700 16px 'IBM Plex Sans'",
+  "800 16px 'IBM Plex Sans'",
+  "italic 400 16px 'IBM Plex Sans'",
+  "600 16px 'IBM Plex Mono'",
+  "700 16px 'IBM Plex Mono'",
 ];
 
 interface AppLoaderProps {
@@ -49,9 +68,21 @@ export default function AppLoader({ children }: AppLoaderProps) {
   useEffect(() => {
     let isCancelled = false;
 
+    async function verifyAndPrimeFonts() {
+      if ("fonts" in document) {
+        try {
+          await Promise.all(FONTS_TO_VERIFY.map((fontDesc) => document.fonts.load(fontDesc)));
+          await document.fonts.ready;
+        } catch (e) {
+          console.warn("Font pre-activation error:", e);
+        }
+      }
+    }
+
     async function prepareOfflineEngine() {
       if (localStorage.getItem(OFFLINE_COMPLETED_KEY) === "true") {
-        setIsReady(true);
+        await verifyAndPrimeFonts();
+        if (!isCancelled) setIsReady(true);
         return;
       }
 
@@ -65,7 +96,7 @@ export default function AppLoader({ children }: AppLoaderProps) {
         console.warn("CacheStorage open error:", e);
       }
 
-      const totalItems = ASSETS_TO_CACHE.length + 2;
+      const totalItems = ASSETS_TO_CACHE.length + 3;
       let loadedItems = 0;
 
       const updateStep = (text: string) => {
@@ -95,12 +126,17 @@ export default function AppLoader({ children }: AppLoaderProps) {
 
         if (assetUrl.includes("desmos")) {
           updateStep("Caching Desmos SAT graphing calculator...");
+        } else if (assetUrl.includes("fonts")) {
+          updateStep("Downloading IBM Plex font suite...");
         } else if (assetUrl.includes("reference")) {
           updateStep("Downloading official formula sheets...");
         } else {
           updateStep("Caching application assets...");
         }
       }
+
+      updateStep("Activating IBM Plex typography into memory...");
+      await verifyAndPrimeFonts();
 
       updateStep("Calibrating offline storage & Math engine...");
       await new Promise((resolve) => setTimeout(resolve, 150));
@@ -148,13 +184,12 @@ export default function AppLoader({ children }: AppLoaderProps) {
               <span className="logo-text">Prep</span>
             </div>
           )}
-          <span className="loader-offline-pill">Offline SAT Suite</span>
         </div>
 
         <h1 className="loader-headline">Downloading LiPrep to Device</h1>
         <p className="loader-description">
-          Storing the application shell, Desmos SAT graphing suite, formula sheets, and diagnostic telemetry
-          locally so you can practice with <strong>zero internet connection</strong>.
+          Storing the application shell, IBM Plex typography, Desmos SAT graphing suite, formula sheets,
+          and diagnostic telemetry locally so you can practice with <strong>zero internet connection</strong>.
         </p>
 
         <div className="loader-progress-track">

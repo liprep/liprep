@@ -1,0 +1,486 @@
+.wol-overlay {
+  position: fixed;
+  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  z-index: 99999;
+  background: rgba(16, 55, 92, 0.45);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 2.5vw, 32px);
+  box-sizing: border-box;
+}
+
+.wol-card {
+  background: #FFFFFF;
+  border: 3px solid var(--color-navy);
+  border-radius: var(--radius-card);
+  box-shadow: 0 20px 48px rgba(16, 55, 92, 0.22), 0 8px 0 var(--color-navy);
+  max-width: 980px;
+  width: 100%;
+  height: 90vh;
+  max-height: 840px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Pinned Minimal Retro Close Button */
+.wol-pinned-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 30;
+  border: 2px solid var(--color-navy);
+  background: #FFFFFF;
+  color: var(--color-navy);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--color-navy);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  touch-action: manipulation;
+}
+
+.wol-pinned-close-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 var(--color-navy);
+  background: #F8FAFC;
+}
+
+.wol-pinned-close-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Full Viewport Masonry Content Area
+   ========================================================================== */
+.wol-body-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 24px;
+  padding-top: 28px;
+  display: flex;
+  flex-direction: column;
+  background: #F4F6FF;
+}
+
+.wol-offline-notice {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1.5px solid #FDE68A;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.wol-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748B;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.wol-masonry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+/* Individual Editorial Testimony Card */
+.wol-card-item {
+  background: #FFFFFF;
+  border: 2.5px solid var(--color-navy);
+  border-radius: 18px;
+  padding: 20px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  box-shadow: 0 4px 0 var(--color-navy);
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.wol-card-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--color-navy);
+}
+
+.wol-card-top-decor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wol-quote-mark {
+  color: var(--color-orange);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.wol-serial-index {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #94A3B8;
+  letter-spacing: 0.5px;
+}
+
+.wol-quote-text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--color-navy);
+  font-weight: 500;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.wol-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1.5px dashed #CBD5E1;
+  gap: 8px;
+}
+
+.wol-author-name {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--color-navy);
+}
+
+.wol-date-stamp {
+  font-family: "IBM Plex Mono", monospace;
+  color: #64748B;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Load More & Failsafe Retry Controls
+   ========================================================================== */
+.wol-load-more-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px 0 12px;
+  width: 100%;
+}
+
+.wol-load-more-btn {
+  padding: 10px 24px;
+  font-size: 0.88rem;
+  background-color: #FFFFFF;
+  color: var(--color-navy);
+}
+
+.wol-retry-btn {
+  padding: 8px 18px;
+  font-size: 0.84rem;
+  background-color: #FFF7ED;
+  color: #C2410C;
+  border-color: #C2410C;
+  box-shadow: 0 3px 0 #C2410C;
+}
+
+/* ==========================================================================
+   Collapsible Bottom Tray
+   ========================================================================== */
+.wol-collapsible-footer {
+  border-top: 2.5px solid var(--color-navy);
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.wol-drawer-toggle-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: #FFFFFF;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--color-navy);
+  transition: background-color 0.15s ease;
+  touch-action: manipulation;
+}
+
+.wol-drawer-toggle-btn:hover {
+  background-color: #F8FAFC;
+}
+
+.wol-drawer-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wol-toggle-badge {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.wol-toggle-badge.locked {
+  background: #F1F5F9;
+  color: #475569;
+}
+
+.wol-toggle-badge.submitted {
+  background: #DCFCE7;
+  color: #166534;
+}
+
+.wol-drawer-toggle-right {
+  display: flex;
+  align-items: center;
+}
+
+.wol-drawer-chevron {
+  font-size: 0.75rem;
+  color: #64748B;
+}
+
+.wol-drawer-content {
+  padding: 16px 20px 20px;
+  border-top: 1.5px dashed #CBD5E1;
+  background: #FFFFFF;
+}
+
+/* Locked Stepper Inside Expanded Drawer */
+.wol-locked-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wol-locked-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.wol-lock-headline {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--color-navy);
+}
+
+.wol-stepper-track {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  gap: 4px;
+  width: 100%;
+}
+
+.wol-step-segment {
+  height: 8px;
+  border: 2.2px solid var(--color-navy);
+  background: #E2E8F0;
+  transition: background-color 0.2s ease;
+}
+
+.wol-step-segment.is-active {
+  background: var(--color-gold);
+}
+
+/* Submitted Banner */
+.wol-submitted-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #F0FDF4;
+  border: 1.5px solid #BBF7D0;
+  border-radius: 12px;
+  padding: 14px 18px;
+}
+
+.wol-submitted-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #22C55E;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.wol-submitted-title {
+  margin: 0 0 4px 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #166534;
+}
+
+.wol-submitted-desc {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #15803D;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+/* Unlocked Dispatch Form Inside Expanded Drawer */
+.wol-dispatch-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wol-dispatch-inputs-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.wol-retro-input {
+  border: 2px solid var(--color-navy);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-navy);
+  background: #FFFFFF;
+  outline: none;
+  box-sizing: border-box;
+  box-shadow: 0 2px 0 var(--color-navy);
+}
+
+.wol-retro-input:focus {
+  border-color: var(--color-indigo);
+  box-shadow: 0 3px 0 var(--color-indigo);
+}
+
+.wol-retro-input-name {
+  max-width: 240px;
+  width: 100%;
+}
+
+.wol-retro-textarea {
+  width: 100%;
+  min-height: 56px;
+  max-height: 110px;
+  resize: vertical;
+  border: 2px solid var(--color-navy);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--color-navy);
+  outline: none;
+  line-height: 1.45;
+  box-sizing: border-box;
+  box-shadow: 0 2px 0 var(--color-navy);
+}
+
+.wol-retro-textarea:focus {
+  border-color: var(--color-indigo);
+  box-shadow: 0 3px 0 var(--color-indigo);
+}
+
+.wol-dispatch-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wol-counter-indicator {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #64748B;
+}
+
+.wol-action-status {
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.wol-action-status.error {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FCA5A5;
+}
+
+.wol-action-status.success {
+  background: #DCFCE7;
+  color: #166534;
+  border: 1px solid #86EFAC;
+}
+
+@media (max-width: 720px) {
+  .wol-card {
+    height: 96vh;
+    border-radius: 16px;
+  }
+
+  .wol-body-scroll {
+    padding: 16px;
+    padding-top: 48px;
+  }
+
+  .wol-masonry-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .wol-dispatch-inputs-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wol-retro-input-name {
+    max-width: 100%;
+  }
+
+  .wol-drawer-content {
+    padding: 14px 16px 16px;
+  }
+}

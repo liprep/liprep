@@ -193,7 +193,7 @@ export default function Filter() {
       <div className="filter-main-layout">
         <aside className="dashboard-sidebar-right filter-controls-pane">
           <div className="retro-card filter-control-card">
-            <h3 className="filter-section-title">Status Filter</h3>
+            <h3 className="filter-section-title">Filtering</h3>
             
             <div className="status-grid-matrix">
               <button
@@ -239,7 +239,7 @@ export default function Filter() {
             </label>
 
             <h3 className="filter-section-title" style={{ marginTop: "4px" }}>
-              Difficulty (Bands 1➔7)
+              Difficulty (1➔7)
             </h3>
             <div className="difficulty-band-group">
               <div className="diff-tier-row">

@@ -29,7 +29,7 @@
   align-items: center;
   gap: 6px;
   font-size: 1.8rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .logo-badge {
@@ -47,10 +47,10 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
-.github-star-btn,
-.home-about-btn {
+.home-nav-action-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -70,7 +70,7 @@
   padding: 2px 7px;
   border-radius: var(--radius-pill);
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.2;
 }
 
@@ -87,13 +87,16 @@
   text-align: left;
 }
 
+/* BOLD & PUNCHY HERO TITLE */
 .hero-main-title {
-  font-size: clamp(2.1rem, 3.8vw, 3.7rem);
-  font-weight: 800;
-  line-height: 1.22;
+  font-size: clamp(2.2rem, 4vw, 3.85rem);
+  font-weight: 700;
+  line-height: 1.18;
   color: var(--color-navy);
-  letter-spacing: -0.5px;
+  letter-spacing: -0.035em;
   margin-bottom: 18px;
+  -webkit-text-stroke: 0.65px var(--color-navy);
+  text-rendering: optimizeLegibility;
 }
 
 .hero-first-line {
@@ -160,11 +163,15 @@
   color: var(--color-navy);
 }
 
+/* 1.5x LARGER HERO SUBTITLE */
 .hero-subtext {
-  font-size: 1.2rem;
+  font-size: clamp(1.4rem, 2.3vw, 1.8rem);
   font-weight: 600;
-  color: #10375ca1;
-  line-height: 1.5;
+  color: #10375C;
+  opacity: 0.78;
+  line-height: 1.45;
+  letter-spacing: -0.3px;
+  margin-top: 4px;
 }
 
 .hero-right-pane {
@@ -213,7 +220,7 @@
 
 .dropzone-title {
   font-size: 1.2rem;
-  font-weight: 800;
+  font-weight: 700;
   margin-bottom: 6px;
   color: var(--color-navy);
 }
