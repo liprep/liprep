@@ -455,9 +455,25 @@
   border: 1px solid #86EFAC;
 }
 
+/* ==========================================================================
+   Mobile-Only Vertical Cut (10% Top, 15% Bottom)
+   ========================================================================== */
 @media (max-width: 720px) {
+  .wol-overlay {
+    padding-top: 10vh;
+    padding-top: 10dvh;
+    padding-bottom: 15vh;
+    padding-bottom: 15dvh;
+    padding-left: clamp(8px, 3vw, 16px);
+    padding-right: clamp(8px, 3vw, 16px);
+    align-items: stretch;
+  }
+
   .wol-card {
-    height: 96vh;
+    height: 75vh;
+    height: 75dvh;
+    max-height: 75vh;
+    max-height: 75dvh;
     border-radius: 16px;
   }
 

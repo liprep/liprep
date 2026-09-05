@@ -363,99 +363,99 @@ export default function AnalyticsModal({
 
         {/* Modal Scroll Body */}
         <div className="analytics-body-scroll">
-          {/* Executive KPI Banner */}
-          <div className="executive-kpi-banner">
-            <div className="kpi-stat-card">
-              <div className="kpi-header-row">
-                <div className="kpi-label-cluster">
-                  <Icons.Check />
-                  <span className="kpi-label">First-Try Accuracy</span>
-                </div>
-                <span className="kpi-pill-badge" style={{ background: "#EEF2FF", color: "#4338CA" }}>
-                  {stats.firstTryOverallAccuracyPct}%
-                </span>
-              </div>
-              <div className="kpi-val-row">
-                <span className="kpi-value-huge">{stats.firstTryOverallAccuracyPct}%</span>
-              </div>
-              <div className="kpi-subtext">
-                {stats.uniqueQuestionsAttempted} unique questions solved
-              </div>
-            </div>
-
-            <div className="kpi-stat-card kpi-highlight-ebrw">
-              <div className="kpi-header-row">
-                <div className="kpi-label-cluster">
-                  <Icons.Target />
-                  <span className="kpi-label" style={{ color: "#525FE1" }}>
-                    EBRW Section
-                  </span>
-                </div>
-                <span className="kpi-pill-badge" style={{ background: "#EEF2FF", color: "#4338CA" }}>
-                  {stats.ebrw.firstTryAccuracyPct}%
-                </span>
-              </div>
-              <div className="kpi-val-row">
-                <span className="kpi-value-huge" style={{ color: "#525FE1" }}>
-                  {stats.ebrw.uniqueAttempted}
-                </span>
-                <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#94A3B8" }}>solved</span>
-              </div>
-              <div className="kpi-subtext">
-                ~{stats.ebrw.avgTimeSeconds}s avg pace • {formatPrepTime(stats.ebrw.totalTimeSeconds)} total
-              </div>
-            </div>
-
-            <div className="kpi-stat-card kpi-highlight-math">
-              <div className="kpi-header-row">
-                <div className="kpi-label-cluster">
-                  <Icons.Target />
-                  <span className="kpi-label" style={{ color: "#FF9955" }}>
-                    Math Section
-                  </span>
-                </div>
-                <span className="kpi-pill-badge" style={{ background: "#FFF7ED", color: "#C2410C" }}>
-                  {stats.math.firstTryAccuracyPct}%
-                </span>
-              </div>
-              <div className="kpi-val-row">
-                <span className="kpi-value-huge" style={{ color: "#FF9955" }}>
-                  {stats.math.uniqueAttempted}
-                </span>
-                <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#94A3B8" }}>solved</span>
-              </div>
-              <div className="kpi-subtext">
-                ~{stats.math.avgTimeSeconds}s avg pace • {formatPrepTime(stats.math.totalTimeSeconds)} total
-              </div>
-            </div>
-
-            <div className="kpi-stat-card">
-              <div className="kpi-header-row">
-                <div className="kpi-label-cluster">
-                  <Icons.Timer />
-                  <span className="kpi-label">Upsolve Velocity</span>
-                </div>
-                <span className="kpi-pill-badge" style={{ background: "#DCFCE7", color: "#166534" }}>
-                  {stats.totalUpsolvedCount} corrected
-                </span>
-              </div>
-              <div className="kpi-val-row">
-                <span className="kpi-value-huge" style={{ color: "#166534" }}>
-                  {stats.uniqueCorrect}
-                </span>
-                <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#94A3B8" }}>
-                  / {stats.uniqueQuestionsAttempted}
-                </span>
-              </div>
-              <div className="kpi-subtext">
-                {stats.uniqueIncorrect} currently unsolved mistakes
-              </div>
-            </div>
-          </div>
-
           {/* TAB 1: EXECUTIVE OVERVIEW */}
           {activeTab === "executive" && (
             <>
+              {/* Executive KPI Banner - only displayed in Overview */}
+              <div className="executive-kpi-banner">
+                <div className="kpi-stat-card">
+                  <div className="kpi-header-row">
+                    <div className="kpi-label-cluster">
+                      <Icons.Check />
+                      <span className="kpi-label">First-Try Accuracy</span>
+                    </div>
+                    <span className="kpi-pill-badge" style={{ background: "#EEF2FF", color: "#4338CA" }}>
+                      {stats.firstTryOverallAccuracyPct}%
+                    </span>
+                  </div>
+                  <div className="kpi-val-row">
+                    <span className="kpi-value-huge">{stats.firstTryOverallAccuracyPct}%</span>
+                  </div>
+                  <div className="kpi-subtext">
+                    {stats.uniqueQuestionsAttempted} unique questions solved
+                  </div>
+                </div>
+
+                <div className="kpi-stat-card kpi-highlight-ebrw">
+                  <div className="kpi-header-row">
+                    <div className="kpi-label-cluster">
+                      <Icons.Target />
+                      <span className="kpi-label" style={{ color: "#525FE1" }}>
+                        EBRW Section
+                      </span>
+                    </div>
+                    <span className="kpi-pill-badge" style={{ background: "#EEF2FF", color: "#4338CA" }}>
+                      {stats.ebrw.firstTryAccuracyPct}%
+                    </span>
+                  </div>
+                  <div className="kpi-val-row">
+                    <span className="kpi-value-huge" style={{ color: "#525FE1" }}>
+                      {stats.ebrw.uniqueAttempted}
+                    </span>
+                    <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#94A3B8" }}>solved</span>
+                  </div>
+                  <div className="kpi-subtext">
+                    ~{stats.ebrw.avgTimeSeconds}s avg pace • {formatPrepTime(stats.ebrw.totalTimeSeconds)} total
+                  </div>
+                </div>
+
+                <div className="kpi-stat-card kpi-highlight-math">
+                  <div className="kpi-header-row">
+                    <div className="kpi-label-cluster">
+                      <Icons.Target />
+                      <span className="kpi-label" style={{ color: "#FF9955" }}>
+                        Math Section
+                      </span>
+                    </div>
+                    <span className="kpi-pill-badge" style={{ background: "#FFF7ED", color: "#C2410C" }}>
+                      {stats.math.firstTryAccuracyPct}%
+                    </span>
+                  </div>
+                  <div className="kpi-val-row">
+                    <span className="kpi-value-huge" style={{ color: "#FF9955" }}>
+                      {stats.math.uniqueAttempted}
+                    </span>
+                    <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#94A3B8" }}>solved</span>
+                  </div>
+                  <div className="kpi-subtext">
+                    ~{stats.math.avgTimeSeconds}s avg pace • {formatPrepTime(stats.math.totalTimeSeconds)} total
+                  </div>
+                </div>
+
+                <div className="kpi-stat-card">
+                  <div className="kpi-header-row">
+                    <div className="kpi-label-cluster">
+                      <Icons.Timer />
+                      <span className="kpi-label">Upsolve Velocity</span>
+                    </div>
+                    <span className="kpi-pill-badge" style={{ background: "#DCFCE7", color: "#166534" }}>
+                      {stats.totalUpsolvedCount} corrected
+                    </span>
+                  </div>
+                  <div className="kpi-val-row">
+                    <span className="kpi-value-huge" style={{ color: "#166534" }}>
+                      {stats.uniqueCorrect}
+                    </span>
+                    <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#94A3B8" }}>
+                      / {stats.uniqueQuestionsAttempted}
+                    </span>
+                  </div>
+                  <div className="kpi-subtext">
+                    {stats.uniqueIncorrect} currently unsolved mistakes
+                  </div>
+                </div>
+              </div>
+
               <div className="dual-chart-row">
                 <div className="chart-panel-card">
                   <div className="chart-panel-header">
