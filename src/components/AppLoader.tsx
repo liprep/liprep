@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "./AppLoader.css";
 
-const CACHE_NAME = "liprep-core-v2";
-const OFFLINE_COMPLETED_KEY = "liprep_offline_ready_v2";
+const CACHE_NAME = "liprep-core-v3";
+const OFFLINE_COMPLETED_KEY = "liprep_offline_ready_v3";
+
+const GOOGLE_FONTS_URL =
+  "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap";
 
 const ASSETS_TO_CACHE = [
   "/",
@@ -38,6 +41,7 @@ const ASSETS_TO_CACHE = [
   "/fonts/ibm-plex-sans-400-italic.woff2",
   "/fonts/ibm-plex-mono-600.woff2",
   "/fonts/ibm-plex-mono-700.woff2",
+  GOOGLE_FONTS_URL,
   "https://www.desmos.com/api/v1.9/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6",
 ];
 
@@ -52,14 +56,15 @@ const FONTS_TO_VERIFY = [
   "700 16px 'IBM Plex Mono'",
 ];
 
+const TEST_GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789—➔•✕✓’“”";
+
 interface AppLoaderProps {
   children: React.ReactNode;
 }
 
 export default function AppLoader({ children }: AppLoaderProps) {
-  const [isReady, setIsReady] = useState(() => {
-    return localStorage.getItem(OFFLINE_COMPLETED_KEY) === "true";
-  });
+  // Never start unprimed: guarantee IBM Plex is loaded into memory before rendering
+  const [isReady, setIsReady] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState("Initializing LiPrep engine...");
   const [isFadingOut, setIsFadingOut] = useState(false);
@@ -68,22 +73,36 @@ export default function AppLoader({ children }: AppLoaderProps) {
   useEffect(() => {
     let isCancelled = false;
 
-    async function verifyAndPrimeFonts() {
-      if ("fonts" in document) {
-        try {
-          await Promise.all(FONTS_TO_VERIFY.map((fontDesc) => document.fonts.load(fontDesc)));
-          await document.fonts.ready;
-        } catch (e) {
-          console.warn("Font pre-activation error:", e);
-        }
+    async function verifyAndPrimeFonts(): Promise<boolean> {
+      if (!("fonts" in document)) return true;
+      try {
+        const loadPromises = FONTS_TO_VERIFY.map((fontDesc) =>
+          document.fonts.load(fontDesc, TEST_GLYPHS)
+        );
+
+        await Promise.race([
+          Promise.all(loadPromises),
+          new Promise((resolve) => setTimeout(resolve, 2000)),
+        ]);
+
+        await document.fonts.ready;
+        return document.fonts.check("16px 'IBM Plex Sans'");
+      } catch (e) {
+        console.warn("[LiPrep] Font verification error:", e);
+        return false;
       }
     }
 
     async function prepareOfflineEngine() {
-      if (localStorage.getItem(OFFLINE_COMPLETED_KEY) === "true") {
-        await verifyAndPrimeFonts();
-        if (!isCancelled) setIsReady(true);
-        return;
+      const alreadyInstalled = localStorage.getItem(OFFLINE_COMPLETED_KEY) === "true";
+
+      if (alreadyInstalled) {
+        // Fast-path for returning offline users: activate fonts and mount instantly
+        const ok = await verifyAndPrimeFonts();
+        if (ok || !isCancelled) {
+          setIsReady(true);
+          return;
+        }
       }
 
       setStatusText("Configuring offline cache storage...");
@@ -93,7 +112,7 @@ export default function AppLoader({ children }: AppLoaderProps) {
           cache = await caches.open(CACHE_NAME);
         }
       } catch (e) {
-        console.warn("CacheStorage open error:", e);
+        console.warn("[LiPrep] CacheStorage open error:", e);
       }
 
       const totalItems = ASSETS_TO_CACHE.length + 3;
@@ -117,11 +136,31 @@ export default function AppLoader({ children }: AppLoaderProps) {
               });
               if (res.ok || res.type === "opaque") {
                 await cache.put(assetUrl, res.clone());
+
+                // If Google Fonts CSS is fetched, cache all embedded woff2 font files
+                if (assetUrl === GOOGLE_FONTS_URL) {
+                  try {
+                    const cssText = await res.text();
+                    const fontUrls = Array.from(
+                      cssText.matchAll(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g)
+                    ).map((m) => m[1]);
+
+                    for (const fUrl of fontUrls) {
+                      const fMatch = await cache.match(fUrl);
+                      if (!fMatch) {
+                        const fRes = await fetch(fUrl, { mode: "cors" });
+                        if (fRes.ok || fRes.type === "opaque") {
+                          await cache.put(fUrl, fRes);
+                        }
+                      }
+                    }
+                  } catch {}
+                }
               }
             }
           }
         } catch (e) {
-          console.warn(`Could not cache asset ${assetUrl}:`, e);
+          console.warn(`[LiPrep] Could not cache asset ${assetUrl}:`, e);
         }
 
         if (assetUrl.includes("desmos")) {

@@ -5,9 +5,35 @@
   background-color: #FFFFFF;
   color: #1A202C;
   user-select: text;
-  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* Top-level app frame uses brand font */
+  font-family: var(--font-plex-sans);
   position: relative;
   overflow-x: hidden;
+}
+
+.stimulus-column,
+.mobile-stimulus,
+.question-column,
+.stem-container,
+.sat-rich-content,
+.bb-option-text,
+.rationale-body,
+.spr-container,
+.spr-input,
+.spr-label,
+.spr-feedback {
+  font-family: var(--font-bluebook-sat);
+}
+
+.bluebook-top-bar,
+.bluebook-bottom-bar,
+.tool-button,
+.bluebook-primary-btn,
+.question-nav-popover-btn,
+.bb-number-square,
+.bb-option-circle,
+.bb-strikethrough-letter {
+  font-family: var(--font-bluebook-sat);
 }
 
 /* Text Highlighting Engine */
@@ -376,7 +402,6 @@ mark.sat-highlight {
   border: 1.5px solid #CBD5E1;
   border-radius: 8px;
   overflow: hidden;
-  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .rationale-summary,
@@ -788,7 +813,7 @@ mark.sat-highlight {
 }
 
 /* ==========================================================================
-   Math Formula Reference Sheet (Portal with Zero Border Pollution)
+   Math Formula Reference Sheet
    ========================================================================== */
 .reference-floating-window {
   position: fixed;
@@ -964,7 +989,6 @@ mark.sat-highlight {
   line-height: 1.55;
   color: #1A202C;
   margin: 0;
-  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   word-break: break-word;
 }
 
