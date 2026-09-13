@@ -9,6 +9,7 @@ import {
   getBookmarkedIds,
   progressDb,
   getQuestionAttempts,
+  ensureSprAnswer,
 } from "@/db";
 import RichContent from "@/components/RichContent";
 import AnswerOption from "@/components/AnswerOption";
@@ -49,6 +50,26 @@ function checkIsCorrect(question: SatQuestion, answer: string): boolean {
   if (question.correct_answer.some((ans) => ans.trim().toLowerCase() === cleaned)) {
     return true;
   }
+
+  // Check leading zero equivalences like ".5" vs "0.5" or "-.75" vs "-0.75"
+  const noLeadZero = cleaned.startsWith("0.")
+    ? cleaned.slice(1)
+    : cleaned.startsWith("-0.")
+    ? "-" + cleaned.slice(2)
+    : null;
+  const withLeadZero = cleaned.startsWith(".")
+    ? "0" + cleaned
+    : cleaned.startsWith("-.")
+    ? "-0" + cleaned.slice(1)
+    : null;
+
+  if (noLeadZero && question.correct_answer.some((ans) => ans.trim().toLowerCase() === noLeadZero)) {
+    return true;
+  }
+  if (withLeadZero && question.correct_answer.some((ans) => ans.trim().toLowerCase() === withLeadZero)) {
+    return true;
+  }
+
   if (question.type !== "spr") return false;
 
   const parsedUser = parseNumericValue(answer);
@@ -140,14 +161,14 @@ export default function Practice() {
         if (targetQuestionId) {
           const directQuestion = await db.questions.get(targetQuestionId.trim());
           if (directQuestion) {
-            loadedQuestions = [directQuestion];
+            loadedQuestions = [ensureSprAnswer(directQuestion)];
           } else {
             const allQ = await db.questions.toArray();
             const matched = allQ.find(
               (q) => q.questionId.toLowerCase() === targetQuestionId.trim().toLowerCase()
             );
             if (matched) {
-              loadedQuestions = [matched];
+              loadedQuestions = [ensureSprAnswer(matched)];
             }
           }
         }

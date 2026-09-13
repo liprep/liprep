@@ -300,6 +300,7 @@ math {
   text-rendering: optimizeLegibility;
   font-style: normal;
   box-sizing: content-box;
+  white-space: nowrap;
 }
 
 math :where(mrow, mn, mo, mi, mtext, mspace, ms, mglyph) {
@@ -331,17 +332,41 @@ mtd {
   text-align: center;
 }
 
-/* SAT Content Tables */
+/* SAT Figure and Table Styles */
+.sat-rich-content figure,
+.bb-option-text figure {
+  margin: 0.5rem 0;
+  max-width: 100%;
+}
+
+.sat-rich-content figure.table,
+.bb-option-text figure.table {
+  margin: 0.5rem auto;
+  display: block;
+}
+
+.sat-rich-content figure.table.left-justified,
+.bb-option-text figure.table.left-justified {
+  margin: 0.5rem 0;
+}
+
 .sat-rich-content table,
 .sat-content table,
 .sat-table {
   border-collapse: collapse !important;
-  width: auto;
+  width: auto !important;
   max-width: 100%;
-  margin: 1.25rem auto;
+  margin: 0.75rem auto;
   background: #FFFFFF;
   border: 1.5px solid #10375C !important;
   border-radius: 4px;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.bb-option-text table,
+.bb-option-text .sat-table {
+  margin: 0.25rem 0;
 }
 
 .sat-rich-content th,
@@ -351,10 +376,15 @@ mtd {
 .sat-table th,
 .sat-table td {
   border: 1px solid #10375C !important;
-  padding: 8px 14px !important;
+  padding: 6px 14px !important;
   text-align: center;
   font-size: 0.95rem;
   color: var(--color-navy);
+  width: auto !important;
+  min-width: 42px;
+  word-break: normal;
+  overflow-wrap: normal;
+  box-sizing: border-box;
 }
 
 .sat-rich-content th,
@@ -362,4 +392,9 @@ mtd {
 .sat-table th {
   background-color: #F1F5F9;
   font-weight: 700;
+}
+
+.sat-rich-content table math,
+.bb-option-text math {
+  white-space: nowrap;
 }

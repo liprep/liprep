@@ -56,6 +56,14 @@
   min-width: 0;
 }
 
+/* Inside tables within answer options, protect content from aggressive word-breaking */
+.bb-option-text table,
+.bb-option-text th,
+.bb-option-text td {
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+
 /* Selected State */
 .bb-option-row.is-selected .bb-option-pill {
   border: 2.5px solid #082A4D;

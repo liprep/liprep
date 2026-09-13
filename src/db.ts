@@ -134,18 +134,48 @@ function parseWrittenFraction(text: string): string | null {
   return null;
 }
 
-function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
+export function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
   if (!rationaleHtml) return [];
 
+  // 1. LaTeX \frac matches
   const fracMatches = Array.from(
     rationaleHtml.matchAll(/\\frac\{([+-]?\d+)\}\{([1-9]\d*)\}/gi)
   );
-  if (fracMatches.length > 0) {
-    const answers = fracMatches.map((m) => `${m[1]}/${m[2]}`);
-    return Array.from(new Set(answers));
-  }
+  const fracAnswers = fracMatches.map((m) => `${m[1]}/${m[2]}`);
 
-  const plainText = rationaleHtml
+  // 2. Pre-process HTML: preserve alt/alttext, MathML mfrac, and written fractions
+  let processed = rationaleHtml;
+
+  // MathML <mfrac><mn>7</mn><mn>6</mn></mfrac> -> 7/6
+  processed = processed.replace(
+    /<mfrac>\s*<mn>([+-]?\d+)<\/mn>\s*<mn>([1-9]\d*)<\/mn>\s*<\/mfrac>/gi,
+    " $1/$2 "
+  );
+
+  // Preserve <img ... alt="..."> by replacing img with its alt content
+  processed = processed.replace(
+    /<img\b[^>]*\balt=["']([^"']*)["'][^>]*>/gi,
+    " $1 "
+  );
+
+  // Preserve MathML alttext
+  processed = processed.replace(
+    /<math\b[^>]*\balttext=["']([^"']*)["'][^>]*>[\s\S]*?<\/math>/gi,
+    " $1 "
+  );
+
+  // Convert phrases like "7 over 6" or "negative 7 over 6" to fractions
+  processed = processed.replace(/\bnegative\s+(\d+)/gi, "-$1");
+  processed = processed.replace(
+    /(?:the fraction\s+)?([+-]?\d+)\s+over\s+([+-]?\d+)/gi,
+    " $1/$2 "
+  );
+  processed = processed.replace(
+    /the fraction with numerator\s+([+-]?\d+)[,\s]+(?:and\s+)?denominator\s+([+-]?\d+)/gi,
+    " $1/$2 "
+  );
+
+  const plainText = processed
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/gi, " ")
     .replace(/&#8722;|&minus;/gi, "-")
@@ -154,41 +184,88 @@ function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
     .replace(/\s+/g, " ")
     .trim();
 
+  // 3. Extract from College Board "Note that 7/6, 1.166, and 1.167 are examples of ways to enter a correct answer."
+  let noteAnswers: string[] = [];
+  const noteMatch = plainText.match(
+    /Note that\s+(?:either\s+)?([\s\S]+?)\s+(?:are examples of ways|is an example of a way|are all examples of ways|are acceptable ways|is an acceptable way|to enter a correct answer)/i
+  );
+  if (noteMatch) {
+    const rawTokens = noteMatch[1].split(/(?:,\s*(?:and\s+|or\s+)?|\s+and\s+|\s+or\s+)/i);
+    noteAnswers = rawTokens
+      .map((t) => t.trim().replace(/^["'`]|["'`]$/g, "").replace(/\.$/, ""))
+      .filter((t) => /^[+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?$/.test(t));
+  }
+
+  // 4. "The correct answer is 7/6" or "The correct answers are 3 and 4"
   const standardMatch = plainText.match(
     /(?:the\s+)?correct answer(?:s)?\s*(?:is|are)\s*(?:either\s*)?([+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?)/i
   );
+  let primaryAnswer = "";
   if (standardMatch) {
     let ans = standardMatch[1].trim();
     if (ans.endsWith(".")) ans = ans.slice(0, -1);
-    if (ans) return [ans];
+    if (ans) primaryAnswer = ans;
   }
 
   const multiMatch = plainText.match(
     /(?:the\s+)?correct answer(?:s)?\s*(?:is|are)\s*(?:either\s*)?((?:[+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?\s*(?:,|or|and)\s*)+[+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?)/i
   );
+  let multiAnswers: string[] = [];
   if (multiMatch) {
     const rawAnswers = multiMatch[1].split(/(?:,\s*|\s+or\s+|\s+and\s+)/i);
-    const answers = rawAnswers
+    multiAnswers = rawAnswers
       .map((a) => a.trim().replace(/\.$/, ""))
       .filter((a) => /^[+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?$/.test(a));
-    if (answers.length > 0) return Array.from(new Set(answers));
   }
 
   const wordsMatch = plainText.match(
     /(?:the\s+)?correct answer\s*(?:is|are)\s*(?:either\s*)?([a-z]+(?:-[a-z]+|\s+[a-z]+))/i
   );
+  let wordAnswer = "";
   if (wordsMatch) {
     const parsed = parseWrittenFraction(wordsMatch[1]);
-    if (parsed) return [parsed];
+    if (parsed) wordAnswer = parsed;
   }
 
-  const genericMatch = plainText.match(/correct answer[^\d+-]*([+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?)/i);
+  const genericMatch = plainText.match(
+    /correct answer[^\d+-]*([+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?)/i
+  );
+  let genericAnswer = "";
   if (genericMatch) {
     let ans = genericMatch[1].trim().replace(/\.$/, "");
-    if (ans) return [ans];
+    if (ans) genericAnswer = ans;
   }
 
-  return [];
+  const combined = [
+    primaryAnswer,
+    ...fracAnswers,
+    ...multiAnswers,
+    wordAnswer,
+    ...noteAnswers,
+    genericAnswer,
+  ].filter((a) => Boolean(a) && /^[+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?$/.test(a));
+
+  const unique = Array.from(new Set(combined));
+  const nonZero = unique.filter((a) => a !== "0");
+  return nonZero.length > 0 ? nonZero : unique;
+}
+
+export function ensureSprAnswer(question: SatQuestion): SatQuestion {
+  if (question.type === "spr" && question.rationale) {
+    const extracted = extractSprAnswerFromRationale(question.rationale);
+    if (extracted.length > 0) {
+      const currentValid = question.correct_answer.filter((a) => a !== "0" && a.trim().length > 0);
+      const combined = Array.from(new Set([...currentValid, ...extracted]));
+      if (
+        combined.length !== question.correct_answer.length ||
+        question.correct_answer.includes("0")
+      ) {
+        question.correct_answer = combined;
+        db.questions.put(question).catch(() => {});
+      }
+    }
+  }
+  return question;
 }
 
 function normalizeDisclosedQuestion(value: JsonRecord, contentObj: JsonRecord): SatQuestion | null {
@@ -253,8 +330,9 @@ function normalizeDisclosedQuestion(value: JsonRecord, contentObj: JsonRecord): 
     if (answerObj.correct_answer || answerObj.correct_choice) {
       correctAnswer = normalizeAnswers(answerObj.correct_answer || answerObj.correct_choice);
     }
-    if (correctAnswer.length === 0) {
-      correctAnswer = extractSprAnswerFromRationale(rationale);
+    const fromRationale = extractSprAnswerFromRationale(rationale);
+    if (fromRationale.length > 0) {
+      correctAnswer = Array.from(new Set([...correctAnswer, ...fromRationale]));
     }
   }
 
@@ -330,9 +408,17 @@ export function normalizeQuestion(value: unknown): SatQuestion | null {
 
   const rationale = asString(value.rationale || baseContent.rationale);
 
-  if (type === "spr" && correctAnswer.length === 0) {
-    correctAnswer = extractSprAnswerFromRationale(rationale);
-    if (correctAnswer.length === 0) correctAnswer = ["0"];
+  if (type === "spr") {
+    const fromRationale = extractSprAnswerFromRationale(rationale);
+    if (correctAnswer.length === 0 || correctAnswer.every((a) => a === "0")) {
+      if (fromRationale.length > 0) {
+        correctAnswer = fromRationale;
+      } else {
+        correctAnswer = ["0"];
+      }
+    } else if (fromRationale.length > 0) {
+      correctAnswer = Array.from(new Set([...correctAnswer, ...fromRationale]));
+    }
   }
 
   if (!questionId || !stem) return null;
@@ -487,7 +573,7 @@ export async function getQuestions(customFilter?: FilterState): Promise<SatQuest
   const selectedTopics = filters.subtopics ?? [];
   const selectedDifficulties = filters.difficultyLevels ?? [];
 
-  let filtered = allQuestions.filter((question) => {
+  let filtered = allQuestions.map(ensureSprAnswer).filter((question) => {
     if (filters.excludeBluebook && BLUEBOOK_IDS.has(question.questionId)) {
       return false;
     }
@@ -572,7 +658,7 @@ export async function getNumberRemainingPerTopic(
     if (!isCorrect) incorrectQuestionIds.add(qId);
   });
 
-  const questions = await db.questions.toArray();
+  const questions = (await db.questions.toArray()).map(ensureSprAnswer);
 
   for (const [fullName, code] of Object.entries(topicCodes)) {
     let matching = questions.filter(
@@ -1119,6 +1205,7 @@ export async function importUserData(file: File): Promise<{ attemptsCount: numbe
     bookmarksCount: validBookmarks.length,
   };
 }
+
 /**
  * Returns the count of unique questions solved correctly by the student.
  */
@@ -1133,6 +1220,7 @@ export async function getSolvedCount(): Promise<number> {
     return 0;
   }
 }
+
 export async function getFirstAttemptTimestamp(): Promise<number | null> {
   try {
     const firstAttempt = await progressDb.attempts.orderBy("solvedAt").first();

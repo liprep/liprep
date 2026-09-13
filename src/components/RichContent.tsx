@@ -149,10 +149,20 @@ export default function RichContent({
     // 2. Fix degree symbol spacing quirks
     preprocessed = preprocessed.replace(/&deg;/g, "°");
 
-    // 3. Transform deprecated MathML <mfenced> to explicit <mo> fence tags
+    // 3. Clean up hardcoded pixel widths on table headers and cells that cause truncation
+    preprocessed = preprocessed.replace(
+      /(<(?:th|td)\b[^>]*style="[^"]*?)\bwidth:\s*[\d.]+(?:px|pt|em|rem);?\s*/gi,
+      "$1"
+    );
+    preprocessed = preprocessed.replace(
+      /(<(?:th|td)\b[^>]*)\bwidth=["'][\d.]+(?:px|pt)?["']/gi,
+      "$1"
+    );
+
+    // 4. Transform deprecated MathML <mfenced> to explicit <mo> fence tags
     preprocessed = transformMfenced(preprocessed);
 
-    // 4. Clean and sanitize HTML, SVG & MathML
+    // 5. Clean and sanitize HTML, SVG & MathML
     const cleanHTML = DOMPurify.sanitize(preprocessed, {
       USE_PROFILES: { html: true, svg: true, mathMl: true, svgFilters: true },
       ADD_TAGS: [
