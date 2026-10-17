@@ -4,9 +4,9 @@ import "./AppLoader.css";
 // Fallback if /sw.js cannot be fetched/parsed. The live value is discovered
 // at runtime by parsing SHELL_CACHE out of /sw.js (single source of truth),
 // so bumping the version in sw.js is enough — no manual sync needed.
-const SHELL_CACHE_FALLBACK = "liprep-shell-v6";
+const SHELL_CACHE_FALLBACK = "liprep-shell-v7";
 const RUNTIME_CACHE = "liprep-runtime-v1";
-const OFFLINE_COMPLETED_KEY = "liprep_offline_ready_v6";
+const OFFLINE_COMPLETED_KEY = "liprep_offline_ready_v7";
 
 const ASSETS_TO_CACHE = [
   "/",

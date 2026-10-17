@@ -1,6 +1,6 @@
 // LiPrep offline-first Service Worker.
 //
-// Cache layout (v6+):
+// Cache layout (v7+):
 // - SHELL_CACHE ("liprep-shell-vN"): versioned app shell listed in
 //   PRECACHE_ASSETS. Evicted on activate when the version bumps.
 // - RUNTIME_CACHE ("liprep-runtime-v1"): UNVERSIONED and never evicted on
@@ -13,7 +13,7 @@
 // by fetching this file and parsing the SHELL_CACHE constant, so bump the
 // version here only.
 
-const SHELL_CACHE = "liprep-shell-v6";
+const SHELL_CACHE = "liprep-shell-v7";
 const RUNTIME_CACHE = "liprep-runtime-v1";
 // Backwards compat: releases <= v4 used a single "liprep-core-vN" cache.
 const LEGACY_CACHE_PREFIX = "liprep-core-";
@@ -168,6 +168,37 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   const isSameOrigin = url.origin === self.location.origin;
+
+  // Navigations the app doesn't own (external links) are left to the browser.
+  if (request.mode === "navigate" && !isSameOrigin) {
+    return;
+  }
+
+  // Real static documents loaded by navigation — the /desmos.html calculator
+  // iframe is a nested navigation — must be served as themselves, never
+  // routed through the SPA shell below (that would swap the calculator for
+  // index.html) and never stored under the "/index.html" key.
+  if (request.mode === "navigate" && /\.html$/.test(url.pathname) && url.pathname !== "/index.html") {
+    event.respondWith(
+      matchShellOrRuntime(request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+        return fetch(request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.ok) {
+              const copy = networkResponse.clone();
+              caches.open(SHELL_CACHE).then((cache) => {
+                cache.put(request, copy).catch(() => {
+                  // Quota failure: serve the network response anyway.
+                });
+              });
+            }
+            return networkResponse;
+          })
+          .catch(() => new Response("Offline", { status: 503, statusText: "Offline" }));
+      })
+    );
+    return;
+  }
 
   // SPA navigations: cache-first so the app opens instantly with zero
   // internet. Refresh the cached shell in the background when online.
