@@ -1,6 +1,6 @@
 // LiPrep offline-first Service Worker.
 //
-// Cache layout (v7+):
+// Cache layout (v8+):
 // - SHELL_CACHE ("liprep-shell-vN"): versioned app shell listed in
 //   PRECACHE_ASSETS. Evicted on activate when the version bumps.
 // - RUNTIME_CACHE ("liprep-runtime-v1"): UNVERSIONED and never evicted on
@@ -13,7 +13,7 @@
 // by fetching this file and parsing the SHELL_CACHE constant, so bump the
 // version here only.
 
-const SHELL_CACHE = "liprep-shell-v7";
+const SHELL_CACHE = "liprep-shell-v8";
 const RUNTIME_CACHE = "liprep-runtime-v1";
 // Backwards compat: releases <= v4 used a single "liprep-core-vN" cache.
 const LEGACY_CACHE_PREFIX = "liprep-core-";
@@ -81,6 +81,22 @@ function isCacheableRequest(request) {
   } catch {
     return false;
   }
+}
+
+// A response that followed a redirect (response.redirected) carries a URL
+// list with more than one entry, and browsers refuse to satisfy a navigation
+// request with such a response: it fails with net::ERR_FAILED ("web page
+// might be temporarily down"). Cloudflare Pages 308-redirects /desmos.html
+// to /desmos, so the precached calculator page arrives redirected and must
+// be re-wrapped before it is served (or stored) for navigations. Constructing
+// a new Response strips the redirect flag while keeping body/status/headers.
+function stripRedirect(response) {
+  if (!response || !response.redirected) return response;
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
 }
 
 // Cacheable responses: normal ok responses (same-origin AND cross-origin
@@ -181,18 +197,18 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate" && /\.html$/.test(url.pathname) && url.pathname !== "/index.html") {
     event.respondWith(
       matchShellOrRuntime(request).then((cachedResponse) => {
-        if (cachedResponse) return cachedResponse;
+        if (cachedResponse) return stripRedirect(cachedResponse);
         return fetch(request)
           .then((networkResponse) => {
             if (networkResponse && networkResponse.ok) {
               const copy = networkResponse.clone();
               caches.open(SHELL_CACHE).then((cache) => {
-                cache.put(request, copy).catch(() => {
+                cache.put(request, stripRedirect(copy)).catch(() => {
                   // Quota failure: serve the network response anyway.
                 });
               });
             }
-            return networkResponse;
+            return stripRedirect(networkResponse);
           })
           .catch(() => new Response("Offline", { status: 503, statusText: "Offline" }));
       })
@@ -212,17 +228,17 @@ self.addEventListener("fetch", (event) => {
               if (networkResponse && networkResponse.ok && !isApiRequest(request.url)) {
                 const copy = networkResponse.clone();
                 caches.open(SHELL_CACHE).then((cache) => {
-                  cache.put("/index.html", copy);
+                  cache.put("/index.html", stripRedirect(copy));
                 });
               }
-              return networkResponse;
+              return stripRedirect(networkResponse);
             })
             .catch(() => cachedIndex);
 
-          if (cachedIndex) return cachedIndex;
+          if (cachedIndex) return stripRedirect(cachedIndex);
           // No cached shell yet (very first load): try runtime cache, then network.
           const runtimeIndex = await caches.match("/index.html", { cacheName: RUNTIME_CACHE });
-          return runtimeIndex || networkUpdate;
+          return stripRedirect(runtimeIndex) || networkUpdate;
         })
     );
     return;
