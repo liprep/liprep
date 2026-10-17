@@ -6,6 +6,8 @@ import WallOfLoveModal from "@/components/WallOfLoveModal";
 import "./Home.css";
 
 const GITHUB_STARS_CACHE_KEY = "liprep_gh_stars_cache";
+const REPO_URL = "https://github.com/liprep/liprep";
+const COMMIT_URL = __APP_COMMIT_SHA__ ? `${REPO_URL}/commit/${__APP_COMMIT_SHA__}` : null;
 
 export default function Home() {
   const navigate = useNavigate();
@@ -124,7 +126,7 @@ export default function Home() {
 
           {/* GitHub Star Button */}
           <a
-            href="https://github.com/liprep/liprep"
+            href={REPO_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="retro-btn github-star-btn home-nav-action-btn"
@@ -278,7 +280,7 @@ export default function Home() {
           <div className="full-screen-blur-overlay" onClick={() => setIsAboutOpen(false)}>
             <div className="about-modal-card animate-fade-in" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
-                <h3 style={{ fontSize: "1.2rem", fontWeight: 800 }}>About LiPrep</h3>
+                <h3 style={{ fontSize: "1.2rem", fontWeight: 700 }}>About LiPrep</h3>
                 <button
                   type="button"
                   className="retro-btn"
@@ -288,14 +290,54 @@ export default function Home() {
                   ✕
                 </button>
               </div>
-              <p className="about-modal-text">
-                Liprep is short for Libre Prep. <br />
-                <br />
-                Test prep platforms have become disgustingly greedy so we felt the need for an open source, community-maintained, and zero bullshit platform to exist.
-                <br />
-                <br />
-                Made by Zaid and Abdullah la3yoon SYE community, and beyond. Also, fuck Oneprep.
-              </p>
+
+              <div className="about-modal-body">
+                <p className="about-modal-text">
+                  <strong>LiPrep</strong> is short for <strong>Libre Prep</strong>.
+                </p>
+                <p className="about-modal-text">
+                  Test prep platforms have become disgustingly greedy, so we felt the need
+                  for an open source, community-maintained, and zero bullshit platform to exist.
+                </p>
+                <p className="about-modal-text">
+                  Made by{" "}
+                  <a
+                    className="about-credit-link"
+                    href="https://www.instagram.com/zaid.gif"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Zaid
+                  </a>{" "}
+                  and Abdullah la3yoon SYE community, and beyond.
+                  Also, fuck Oneprep.
+                </p>
+              </div>
+
+              <div className="about-modal-footer">
+                <p className="about-commit-line">
+                  Current version:{" "}
+                  {COMMIT_URL ? (
+                    <a
+                      className="about-commit-link"
+                      href={COMMIT_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="View this build's commit on GitHub"
+                    >
+                      {__APP_VERSION__}
+                    </a>
+                  ) : (
+                    __APP_VERSION__
+                  )}
+                  {__APP_COMMIT_DATE__ && (
+                    <span className="about-commit-date"> · {__APP_COMMIT_DATE__}</span>
+                  )}
+                </p>
+                {__APP_COMMIT_MESSAGE__ && (
+                  <p className="about-commit-message">{__APP_COMMIT_MESSAGE__}</p>
+                )}
+              </div>
             </div>
           </div>,
           document.body

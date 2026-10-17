@@ -296,12 +296,66 @@
   box-sizing: border-box;
 }
 
+.about-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+}
+
 .about-modal-text {
-  font-size: 0.98rem;
-  line-height: 1.6;
+  font-size: 0.95rem;
+  line-height: 1.65;
   font-weight: 600;
   color: var(--color-navy);
-  margin-top: 14px;
+  margin: 0;
+}
+
+.about-modal-footer {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 2px dashed var(--color-border);
+}
+
+.about-commit-line {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-navy);
+}
+
+.about-commit-link {
+  font-family: var(--font-plex-mono);
+  font-weight: 700;
+  color: var(--color-indigo);
+  text-decoration: none;
+}
+
+.about-commit-link:hover {
+  text-decoration: underline;
+}
+
+.about-commit-date {
+  color: #64748B;
+  font-weight: 500;
+}
+
+.about-credit-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 2.5px;
+}
+
+.about-credit-link:hover {
+  color: var(--color-indigo);
+}
+
+.about-commit-message {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #64748B;
 }
 
 @media (max-width: 980px) {
