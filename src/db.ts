@@ -560,15 +560,66 @@ export async function getBookmarkedIds(): Promise<Set<string>> {
   return new Set(all.map((b) => b.questionId));
 }
 
-export async function getQuestions(customFilter?: FilterState): Promise<SatQuestion[]> {
-  const allQuestions = await db.questions.toArray();
-  const filtersString = !customFilter ? sessionStorage.getItem("filters") : null;
-  const filters: FilterState = customFilter ?? (filtersString ? JSON.parse(filtersString) : {
+export const ACTIVE_FILTERS_KEY = "liprep_active_filters";
+
+function defaultFilters(): FilterState {
+  return {
     subtopics: [],
     difficultyLevels: [],
     solvedStatus: "all",
     excludeBluebook: true,
-  });
+  };
+}
+
+/**
+ * Offline-hardened filter reader: sessionStorage is per-tab and vanishes on
+ * PWA restart, so fall back to the localStorage mirror written by Filter.tsx.
+ * Never throws — corrupt payloads reset to defaults.
+ */
+export function readPersistedFilters(): FilterState {
+  const defaults = defaultFilters();
+  const candidates: (string | null)[] = [];
+  try {
+    candidates.push(sessionStorage.getItem("filters"));
+  } catch {}
+  try {
+    candidates.push(localStorage.getItem(ACTIVE_FILTERS_KEY));
+  } catch {}
+  for (const raw of candidates) {
+    if (!raw) continue;
+    try {
+      const parsed = JSON.parse(raw) as Partial<FilterState>;
+      if (parsed && typeof parsed === "object") {
+        return {
+          subtopics: Array.isArray(parsed.subtopics) ? parsed.subtopics : defaults.subtopics,
+          difficultyLevels: Array.isArray(parsed.difficultyLevels)
+            ? parsed.difficultyLevels
+            : defaults.difficultyLevels,
+          solvedStatus: parsed.solvedStatus ?? defaults.solvedStatus,
+          excludeBluebook:
+            typeof parsed.excludeBluebook === "boolean"
+              ? parsed.excludeBluebook
+              : defaults.excludeBluebook,
+        };
+      }
+    } catch {}
+  }
+  return defaults;
+}
+
+/** Mirror the active session filters so they survive PWA restarts offline. */
+export function persistActiveFilters(filters: FilterState): void {
+  try {
+    sessionStorage.setItem("filters", JSON.stringify(filters));
+  } catch {}
+  try {
+    localStorage.setItem(ACTIVE_FILTERS_KEY, JSON.stringify(filters));
+  } catch {}
+}
+
+export async function getQuestions(customFilter?: FilterState): Promise<SatQuestion[]> {
+  const allQuestions = await db.questions.toArray();
+  const filters: FilterState = customFilter ?? readPersistedFilters();
 
   const selectedTopics = filters.subtopics ?? [];
   const selectedDifficulties = filters.difficultyLevels ?? [];

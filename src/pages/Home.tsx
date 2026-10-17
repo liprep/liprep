@@ -29,10 +29,15 @@ export default function Home() {
   useEffect(() => {
     getStoredQuestionCount().then((count) => setQuestionCount(count));
 
-    // Offline-safe GitHub stars fetch
+    // Offline-safe GitHub stars fetch (5s timeout so flaky networks fail fast)
     async function fetchStars() {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       try {
-        const res = await fetch("https://api.github.com/repos/liprep/liprep");
+        const res = await fetch("https://api.github.com/repos/liprep/liprep", {
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
         if (res.ok) {
           const data = await res.json();
           if (typeof data.stargazers_count === "number") {
@@ -41,6 +46,7 @@ export default function Home() {
           }
         }
       } catch {
+        clearTimeout(timeoutId);
         // Retains cached star count or graceful omission when offline
       }
     }

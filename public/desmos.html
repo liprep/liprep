@@ -18,21 +18,39 @@
       width: 100%;
       height: 100%;
     }
-    #fallback {
+    #offline-msg {
       display: none;
       width: 100%;
       height: 100%;
-      border: none;
+      box-sizing: border-box;
+      padding: 32px 24px;
+      text-align: center;
+      color: #0F172A;
+    }
+    #offline-msg h2 {
+      font-size: 1.1rem;
+      margin: 0 0 8px 0;
+    }
+    #offline-msg p {
+      font-size: 0.9rem;
+      color: #475569;
+      margin: 0;
     }
   </style>
-  <!-- 1. Try local offline script first; if unavailable, loads official API -->
+  <!-- 1. Try local offline script first; if unavailable and online, loads official API.
+       Final failure shows an offline message instead of an iframe to desmos.com
+       (which can never load with zero internet). -->
   <script src="/desmos-calculator.js" onerror="loadCdnScript()"></script>
   <script>
     function loadCdnScript() {
+      if (!navigator.onLine) {
+        showOfflineMessage();
+        return;
+      }
       const script = document.createElement('script');
       script.src = 'https://www.desmos.com/api/v1.9/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6';
       script.onload = initDesmos;
-      script.onerror = showFallbackIframe;
+      script.onerror = showOfflineMessage;
       document.head.appendChild(script);
     }
 
@@ -54,16 +72,15 @@
           restrictedMode: false
         });
       } else {
-        showFallbackIframe();
+        showOfflineMessage();
       }
     }
 
-    function showFallbackIframe() {
+    function showOfflineMessage() {
       const calcDiv = document.getElementById('calculator');
-      const fallback = document.getElementById('fallback');
+      const msg = document.getElementById('offline-msg');
       calcDiv.style.display = 'none';
-      fallback.style.display = 'block';
-      fallback.src = 'https://www.desmos.com/testing/cb-digital-sat/graphing';
+      msg.style.display = 'block';
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -81,6 +98,9 @@
 </head>
 <body>
   <div id="calculator"></div>
-  <iframe id="fallback" title="Desmos Testing Calculator"></iframe>
+  <div id="offline-msg">
+    <h2>Calculator unavailable</h2>
+    <p>The graphing calculator could not be loaded. Check your connection and reopen it.</p>
+  </div>
 </body>
 </html>

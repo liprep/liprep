@@ -123,6 +123,9 @@ export default function Practice() {
   // Responsive Detection
   const [isMobileScreen, setIsMobileScreen] = useState(() => typeof window !== "undefined" && window.innerWidth <= 860);
 
+  // Online status: external services (tutorial search, feedback form) need internet
+  const [isOnline, setIsOnline] = useState(() => typeof navigator !== "undefined" ? navigator.onLine : true);
+
   // Desmos Calculator States
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [isCalcDocked, setIsCalcDocked] = useState(false);
@@ -144,8 +147,20 @@ export default function Practice() {
     function handleResize() {
       setIsMobileScreen(window.innerWidth <= 860);
     }
+    function handleOnline() {
+      setIsOnline(true);
+    }
+    function handleOffline() {
+      setIsOnline(false);
+    }
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
   }, []);
 
   const handleToggleCalculator = () => {
@@ -1060,20 +1075,30 @@ export default function Practice() {
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                     <strong>Question ID:</strong> <code>{currentQ.questionId}</code>
                   </div>
-                  <a
-                    href={tutorialSearchUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="tutorial-search-link"
-                    title={`Search Google videos for "${currentQ.questionId}"`}
-                  >
-                    <span>search for tutorial</span>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                      <polyline points="15 3 21 3 21 9" />
-                      <line x1="10" y1="14" x2="21" y2="3" />
-                    </svg>
-                  </a>
+                  {isOnline ? (
+                    <a
+                      href={tutorialSearchUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="tutorial-search-link"
+                      title={`Search Google videos for "${currentQ.questionId}"`}
+                    >
+                      <span>search for tutorial</span>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                      </svg>
+                    </a>
+                  ) : (
+                    <span
+                      className="tutorial-search-link"
+                      title="Tutorial search needs an internet connection"
+                      style={{ opacity: 0.5, cursor: "not-allowed" }}
+                    >
+                      <span>search for tutorial (offline)</span>
+                    </span>
+                  )}
                 </div>
                 <div><strong>Section:</strong> {currentQ.module === "math" ? "Math" : "Reading and Writing"}</div>
                 <div><strong>Domain:</strong> {domainMap[currentQ.primary_class_cd || ""] || currentQ.primary_class_cd || "—"}</div>
@@ -1090,28 +1115,45 @@ export default function Practice() {
 
                 {/* Report / Feedback Action */}
                 <div style={{ marginTop: "10px", paddingTop: "14px", borderTop: "1.5px solid #E2E8F0" }}>
-                  <a
-                    href={feedbackUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="retro-btn"
-                    style={{
-                      width: "100%",
-                      textDecoration: "none",
-                      gap: "8px",
-                      padding: "10px 16px",
-                      fontSize: "0.9rem",
-                      backgroundColor: "#FFF8F0",
-                      borderColor: "var(--color-navy)",
-                      color: "var(--color-navy)",
-                    }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "#E11D48" }}>
-                      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-                      <line x1="4" y1="22" x2="4" y2="15" />
-                    </svg>
-                    <span>Report Issue / Feedback</span>
-                  </a>
+                  {isOnline ? (
+                    <a
+                      href={feedbackUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="retro-btn"
+                      style={{
+                        width: "100%",
+                        textDecoration: "none",
+                        gap: "8px",
+                        padding: "10px 16px",
+                        fontSize: "0.9rem",
+                        backgroundColor: "#FFF8F0",
+                        borderColor: "var(--color-navy)",
+                        color: "var(--color-navy)",
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "#E11D48" }}>
+                        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                        <line x1="4" y1="22" x2="4" y2="15" />
+                      </svg>
+                      <span>Report Issue / Feedback</span>
+                    </a>
+                  ) : (
+                    <span
+                      className="retro-btn"
+                      title="Feedback form needs an internet connection"
+                      style={{
+                        width: "100%",
+                        gap: "8px",
+                        padding: "10px 16px",
+                        fontSize: "0.9rem",
+                        opacity: 0.5,
+                        cursor: "not-allowed",
+                      }}
+                    >
+                      <span>Report Issue / Feedback (offline)</span>
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

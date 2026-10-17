@@ -1,14 +1,39 @@
-const CACHE_NAME = "liprep-core-v1";
+// LiPrep offline-first Service Worker.
+//
+// Cache layout (v6+):
+// - SHELL_CACHE ("liprep-shell-vN"): versioned app shell listed in
+//   PRECACHE_ASSETS. Evicted on activate when the version bumps.
+// - RUNTIME_CACHE ("liprep-runtime-v1"): UNVERSIONED and never evicted on
+//   activate. Holds hashed Vite bundles (/assets/*), runtime-fetched fonts,
+//   remote question images, and the Desmos CDN fallback. This split fixes two
+//   offline bugs: (1) an update no longer deletes bundles the running page
+//   still needs, (2) runtime-cached images survive updates.
+//
+// Single source of truth: src/components/AppLoader.tsx discovers SHELL_CACHE
+// by fetching this file and parsing the SHELL_CACHE constant, so bump the
+// version here only.
 
+const SHELL_CACHE = "liprep-shell-v6";
+const RUNTIME_CACHE = "liprep-runtime-v1";
+// Backwards compat: releases <= v4 used a single "liprep-core-vN" cache.
+const LEGACY_CACHE_PREFIX = "liprep-core-";
+const SHELL_CACHE_PREFIX = "liprep-shell-";
+
+// Same-origin only. No remote URLs here: precaching a third-party URL makes
+// first install (and every update) depend on the network + that third party.
+// Remote fallbacks (e.g. Desmos CDN) are attempted at runtime, not install.
 const PRECACHE_ASSETS = [
   "/",
   "/index.html",
   "/manifest.json",
+  "/favicon.svg",
+  "/icons.svg",
+  "/liprep-logo.svg",
   "/pwa-192x192.png",
   "/pwa-512x512.png",
   "/apple-touch-icon.png",
   "/desmos.html",
-  "/liprep-logo.svg",
+  "/desmos-calculator.js",
   "/hero-star.svg",
   "/hero-turd-blob.svg",
   "/bg-blob-orange.svg",
@@ -29,21 +54,63 @@ const PRECACHE_ASSETS = [
   "/reference/10.svg",
   "/reference/11.svg",
   "/reference/special-triangles.png",
-  "https://www.desmos.com/api/v1.9/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"
+  "/fonts/ibm-plex-sans-400.woff2",
+  "/fonts/ibm-plex-sans-500.woff2",
+  "/fonts/ibm-plex-sans-600.woff2",
+  "/fonts/ibm-plex-sans-700.woff2",
+  "/fonts/ibm-plex-sans-400-italic.woff2",
+  "/fonts/ibm-plex-mono-600.woff2",
+  "/fonts/ibm-plex-mono-700.woff2",
+  "/fonts/stix-two-math-400.woff2",
 ];
 
-// Install: Precache all offline assets
+// Never serve API responses from cache: testimonies must be fresh, and a
+// cached error/empty response would poison offline UX.
+function isApiRequest(url) {
+  try {
+    return new URL(url, self.location.origin).pathname.startsWith("/api/");
+  } catch {
+    return false;
+  }
+}
+
+function isCacheableRequest(request) {
+  try {
+    const url = new URL(request.url);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+// Cacheable responses: normal ok responses (same-origin AND cross-origin
+// CORS, e.g. Desmos CDN fallback or remote question images) plus opaque
+// no-cors responses (e.g. <img> tags). Opaque responses have status 0, so
+// `ok` alone is not enough — check the type explicitly.
+function isCacheableResponse(response, isSameOrigin) {
+  if (!response) return false;
+  if (response.type === "opaque") return true;
+  if (response.ok) return true;
+  // Defensive: some browsers report cross-origin CORS hits as basic with 200.
+  void isSameOrigin;
+  return false;
+}
+
+// Install: precache the offline shell into the versioned shell cache.
+// Individual failures must not fail the whole install — a missing decorative
+// asset is not a broken app.
 self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
+    caches.open(SHELL_CACHE).then((cache) => {
       return Promise.allSettled(
         PRECACHE_ASSETS.map((url) =>
-          fetch(url, { mode: url.startsWith("http") ? "cors" : "same-origin" })
+          fetch(url, { mode: "same-origin" })
             .then((res) => {
-              if (res.ok || res.type === "opaque") {
+              if (res.ok) {
                 return cache.put(url, res);
               }
+              console.warn(`[SW] Precache skipped (status ${res.status}): ${url}`);
             })
             .catch((err) => console.warn(`[SW] Precache failed for ${url}:`, err))
         )
@@ -52,66 +119,116 @@ self.addEventListener("install", (event) => {
   );
 });
 
-// Activate: Clean up stale caches & claim clients
+// Allow pages to trigger activation explicitly if we ever drop skipWaiting.
+self.addEventListener("message", (event) => {
+  if (event.data === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
+
+// Activate: evict stale SHELL caches (current + legacy liprep-core-*), but
+// NEVER delete RUNTIME_CACHE — it holds hashed bundles and images the running
+// page and future offline sessions still need. IndexedDB + localStorage are
+// untouched by this worker.
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    caches
+      .keys()
+      .then((keys) => {
+        return Promise.all(
+          keys.map((key) => {
+            if (key === SHELL_CACHE || key === RUNTIME_CACHE) return Promise.resolve(false);
+            if (key.startsWith(SHELL_CACHE_PREFIX) || key.startsWith(LEGACY_CACHE_PREFIX)) {
+              return caches.delete(key);
+            }
+            return Promise.resolve(false);
+          })
+        );
+      })
+      .then(() => self.clients.claim())
   );
 });
 
-// Fetch: Serve cache-first with network fallback
+async function matchShellOrRuntime(request) {
+  const shellMatch = await caches.match(request, { cacheName: SHELL_CACHE });
+  if (shellMatch) return shellMatch;
+  return caches.match(request, { cacheName: RUNTIME_CACHE });
+}
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-
-  // SPA navigation handling
-  if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request).catch(() => {
-        return caches.match("/index.html").then((cachedIndex) => {
-          return cachedIndex || caches.match("/");
-        });
-      })
-    );
-    return;
-  }
 
   if (request.method !== "GET") {
     return;
   }
 
+  if (!isCacheableRequest(request)) {
+    return;
+  }
+
+  const url = new URL(request.url);
+  const isSameOrigin = url.origin === self.location.origin;
+
+  // SPA navigations: cache-first so the app opens instantly with zero
+  // internet. Refresh the cached shell in the background when online.
+  if (request.mode === "navigate") {
+    event.respondWith(
+      caches
+        .match("/index.html", { cacheName: SHELL_CACHE })
+        .then(async (cachedIndex) => {
+          const networkUpdate = fetch(request)
+            .then((networkResponse) => {
+              if (networkResponse && networkResponse.ok && !isApiRequest(request.url)) {
+                const copy = networkResponse.clone();
+                caches.open(SHELL_CACHE).then((cache) => {
+                  cache.put("/index.html", copy);
+                });
+              }
+              return networkResponse;
+            })
+            .catch(() => cachedIndex);
+
+          if (cachedIndex) return cachedIndex;
+          // No cached shell yet (very first load): try runtime cache, then network.
+          const runtimeIndex = await caches.match("/index.html", { cacheName: RUNTIME_CACHE });
+          return runtimeIndex || networkUpdate;
+        })
+    );
+    return;
+  }
+
+  // API reads always go to the network; offline they fail fast so the UI can
+  // fall back to its localStorage cache (see WallOfLoveModal).
+  if (isApiRequest(request.url)) {
+    return;
+  }
+
+  // Everything else (hashed Vite bundles in /assets/*, images, fonts,
+  // Desmos CDN fallback): cache-first with network fallback. The runtime
+  // cache is what keeps the app working offline even though hashed filenames
+  // can't be listed at precache time, and it now accepts cross-origin CORS
+  // responses too (remote question images, CDN scripts).
   event.respondWith(
-    caches.match(request).then((cachedResponse) => {
+    matchShellOrRuntime(request).then((cachedResponse) => {
       if (cachedResponse) {
         return cachedResponse;
       }
 
       return fetch(request)
         .then((networkResponse) => {
-          if (
-            !networkResponse ||
-            (networkResponse.status !== 200 && networkResponse.type !== "opaque")
-          ) {
-            return networkResponse;
+          if (networkResponse && isCacheableResponse(networkResponse, isSameOrigin)) {
+            const responseToCache = networkResponse.clone();
+            caches.open(RUNTIME_CACHE).then((cache) => {
+              cache.put(request, responseToCache).catch(() => {
+                // Quota or opaque-put failure: serve the network response anyway.
+              });
+            });
           }
-
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseToCache);
-          });
-
           return networkResponse;
         })
         .catch(() => {
           if (request.destination === "image") {
-            return caches.match("/pwa-192x192.png");
+            return caches.match("/pwa-192x192.png", { cacheName: SHELL_CACHE });
           }
           return new Response("Offline", { status: 503, statusText: "Offline" });
         });

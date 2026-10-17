@@ -7,6 +7,7 @@ import {
   getActivityHeatmapData,
   getUserStatistics,
   clearAllUserData,
+  persistActiveFilters,
 } from "@/db";
 import { topicCodes } from "@/components/TopicTree";
 import type { UserStats } from "@/types/questions";
@@ -141,6 +142,7 @@ export default function Filter() {
     };
 
     sessionStorage.setItem("filters", JSON.stringify(filterPayload));
+    persistActiveFilters(filterPayload);
     navigate("/practice");
   }
 
@@ -158,6 +160,7 @@ export default function Filter() {
       excludeBluebook,
     };
     sessionStorage.setItem("filters", JSON.stringify(filterPayload));
+    persistActiveFilters(filterPayload);
     navigate("/practice");
   };
 

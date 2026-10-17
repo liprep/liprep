@@ -1,6 +1,6 @@
 import DOMPurify from "dompurify";
 import parse, { type DOMNode, type Element } from "html-react-parser";
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef } from "react";
 
 interface RichContentProps {
   content?: string | null;
@@ -131,6 +131,8 @@ export default function RichContent({
   content,
   className = "",
 }: RichContentProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
+
   const renderedContent = useMemo(() => {
     if (!content) return null;
 
@@ -242,9 +244,32 @@ export default function RichContent({
     });
   }, [content]);
 
+  // Offline hardening: question banks may reference remote images that were
+  // never cached. Hide images that fail to load instead of showing broken
+  // icons and collapsing the layout.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const imgs = Array.from(root.querySelectorAll("img"));
+    const handleError = (e: Event) => {
+      const target = e.target as HTMLImageElement;
+      target.style.display = "none";
+    };
+    imgs.forEach((img) => {
+      // Already failed before listeners attached (e.g. cached error state)
+      if (img.complete && img.naturalWidth === 0 && img.src) {
+        img.style.display = "none";
+      }
+      img.addEventListener("error", handleError);
+    });
+    return () => {
+      imgs.forEach((img) => img.removeEventListener("error", handleError));
+    };
+  }, [renderedContent]);
+
   if (!renderedContent) return null;
 
   return (
-    <div className={`sat-rich-content ${className}`}>{renderedContent}</div>
+    <div ref={rootRef} className={`sat-rich-content ${className}`}>{renderedContent}</div>
   );
 }
