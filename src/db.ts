@@ -242,16 +242,21 @@ export function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
     if (ans) genericAnswer = ans;
   }
 
-  const combined = [
+  const isAnswerToken = (a: string) =>
+    Boolean(a) && /^[+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?$/.test(a);
+
+  const explicitAnswers = [
     primaryAnswer,
-    ...fracAnswers,
     ...multiAnswers,
     wordAnswer,
     ...noteAnswers,
-    genericAnswer,
-  ].filter((a) => Boolean(a) && /^[+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?$/.test(a));
+  ].filter(isAnswerToken);
 
-  const unique = Array.from(new Set(combined));
+  const inferredAnswers = [...fracAnswers, genericAnswer].filter(isAnswerToken);
+
+  const unique = Array.from(new Set([...explicitAnswers, ...inferredAnswers]));
+  if (explicitAnswers.includes("0")) return unique;
+
   const nonZero = unique.filter((a) => a !== "0");
   return nonZero.length > 0 ? nonZero : unique;
 }
@@ -260,8 +265,14 @@ export function ensureSprAnswer(question: SatQuestion): SatQuestion {
   if (question.type === "spr" && question.rationale) {
     const extracted = extractSprAnswerFromRationale(question.rationale);
     if (extracted.length > 0) {
+      const extractedSet = new Set(extracted);
+      const isZeroOnly = question.correct_answer.length === 1 && question.correct_answer[0] === "0";
       const currentValid = new Set(
-        question.correct_answer.filter((a) => a !== "0" && a.trim().length > 0)
+        question.correct_answer.filter((a) => {
+          if (a.trim().length === 0) return false;
+          if (isZeroOnly && a === "0" && !extractedSet.has("0")) return false;
+          return true;
+        })
       );
 
       // Drop stale comma-grouped fragments (e.g. "3" and "540") when the
@@ -278,8 +289,7 @@ export function ensureSprAnswer(question: SatQuestion): SatQuestion {
       const existing = new Set(question.correct_answer);
       const changed =
         combined.length !== question.correct_answer.length ||
-        combined.some((answer) => !existing.has(answer)) ||
-        question.correct_answer.includes("0");
+        combined.some((answer) => !existing.has(answer));
       if (changed) {
         question.correct_answer = combined;
         db.questions.put(question).catch(() => {});
