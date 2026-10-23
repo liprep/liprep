@@ -184,9 +184,15 @@ export function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
     .replace(/\s+/g, " ")
     .trim();
 
+  // Treat comma-grouped numbers like "3,540" as a single number, not two answers
+  const normalizedPlainText = plainText.replace(
+    /\b\d{1,3}(?:,\d{3})+(?:\.\d+)?\b/g,
+    (value) => value.replace(/,/g, "")
+  );
+
   // 3. Extract from College Board "Note that 7/6, 1.166, and 1.167 are examples of ways to enter a correct answer."
   let noteAnswers: string[] = [];
-  const noteMatch = plainText.match(
+  const noteMatch = normalizedPlainText.match(
     /Note that\s+(?:either\s+)?([\s\S]+?)\s+(?:are examples of ways|is an example of a way|are all examples of ways|are acceptable ways|is an acceptable way|to enter a correct answer)/i
   );
   if (noteMatch) {
@@ -197,7 +203,7 @@ export function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
   }
 
   // 4. "The correct answer is 7/6" or "The correct answers are 3 and 4"
-  const standardMatch = plainText.match(
+  const standardMatch = normalizedPlainText.match(
     /(?:the\s+)?correct answer(?:s)?\s*(?:is|are)\s*(?:either\s*)?([+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?)/i
   );
   let primaryAnswer = "";
@@ -207,7 +213,7 @@ export function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
     if (ans) primaryAnswer = ans;
   }
 
-  const multiMatch = plainText.match(
+  const multiMatch = normalizedPlainText.match(
     /(?:the\s+)?correct answer(?:s)?\s*(?:is|are)\s*(?:either\s*)?((?:[+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?\s*(?:,|or|and)\s*)+[+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?)/i
   );
   let multiAnswers: string[] = [];
@@ -218,7 +224,7 @@ export function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
       .filter((a) => /^[+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?$/.test(a));
   }
 
-  const wordsMatch = plainText.match(
+  const wordsMatch = normalizedPlainText.match(
     /(?:the\s+)?correct answer\s*(?:is|are)\s*(?:either\s*)?([a-z]+(?:-[a-z]+|\s+[a-z]+))/i
   );
   let wordAnswer = "";
@@ -227,7 +233,7 @@ export function extractSprAnswerFromRationale(rationaleHtml: string): string[] {
     if (parsed) wordAnswer = parsed;
   }
 
-  const genericMatch = plainText.match(
+  const genericMatch = normalizedPlainText.match(
     /correct answer[^\d+-]*([+-]?(?:\d+\.?\d*|\.\d+)(?:\/[+-]?(?:\d+\.?\d*|\.\d+))?)/i
   );
   let genericAnswer = "";
@@ -254,12 +260,27 @@ export function ensureSprAnswer(question: SatQuestion): SatQuestion {
   if (question.type === "spr" && question.rationale) {
     const extracted = extractSprAnswerFromRationale(question.rationale);
     if (extracted.length > 0) {
-      const currentValid = question.correct_answer.filter((a) => a !== "0" && a.trim().length > 0);
+      const currentValid = new Set(
+        question.correct_answer.filter((a) => a !== "0" && a.trim().length > 0)
+      );
+
+      // Drop stale comma-grouped fragments (e.g. "3" and "540") when the
+      // rationale now yields the full number ("3540").
+      for (const answer of extracted) {
+        if (!/^\d{4,}$/.test(answer)) continue;
+        const groups = answer.replace(/\B(?=(\d{3})+(?!\d))/g, ",").split(",");
+        if (groups.length > 1 && groups.every((group) => currentValid.has(group))) {
+          groups.forEach((group) => currentValid.delete(group));
+        }
+      }
+
       const combined = Array.from(new Set([...currentValid, ...extracted]));
-      if (
+      const existing = new Set(question.correct_answer);
+      const changed =
         combined.length !== question.correct_answer.length ||
-        question.correct_answer.includes("0")
-      ) {
+        combined.some((answer) => !existing.has(answer)) ||
+        question.correct_answer.includes("0");
+      if (changed) {
         question.correct_answer = combined;
         db.questions.put(question).catch(() => {});
       }
